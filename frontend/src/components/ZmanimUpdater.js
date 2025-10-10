@@ -10,10 +10,10 @@ function ZmanimUpdater({ onUpdate }) {
             // Then fetch the updated data
             const data = await api.get('/zmanim/');
             console.log('Received data:', data);
-            onUpdate(data.zmanim, data.limudim, data.jewish_calendar);
+            onUpdate(data.zmanim, data.limudim, data.jewish_calendar, null, true);
         } catch (error) {
             console.error('Error:', error);
-            onUpdate(null, null, null, 'Error updating daily zmanim and limudim.');
+            onUpdate(null, null, null, 'Error updating daily zmanim and limudim.', true);
         }
     };
 

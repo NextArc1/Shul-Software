@@ -1,18 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../utils/api';
 
-const CustomTimes = ({ onCustomTimeCreated }) => {
+const CustomTimes = ({ onCustomTimeCreated, editingCustomTime, onCancelEdit }) => {
   const [internalName, setInternalName] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [description, setDescription] = useState('');
   const [timeType, setTimeType] = useState('fixed');
   const [fixedTime, setFixedTime] = useState('');
   const [baseTime, setBaseTime] = useState('');
   const [offsetMinutes, setOffsetMinutes] = useState(0);
   const [daily, setDaily] = useState(false);
-  const [dayOfWeek, setDayOfWeek] = useState(null);
+  const [daysOfWeek, setDaysOfWeek] = useState([]);
   const [availableZmanim, setAvailableZmanim] = useState([]);
-  const [existingCustomTimes, setExistingCustomTimes] = useState([]);
-  const [editingId, setEditingId] = useState(null);
+  const [errors, setErrors] = useState({});
+
+  // Clear form function
+  const clearForm = () => {
+    setInternalName('');
+    setDisplayName('');
+    setDescription('');
+    setTimeType('fixed');
+    setFixedTime('');
+    setBaseTime('');
+    setOffsetMinutes(0);
+    setDaily(false);
+    setDaysOfWeek([]);
+    setErrors({});
+  };
 
   // Fetch all available fields from DailyZmanim
   useEffect(() => {
@@ -28,240 +42,322 @@ const CustomTimes = ({ onCustomTimeCreated }) => {
       .catch(error => {
         console.error('Error fetching available fields:', error);
       });
-
-    fetchExistingCustomTimes();
   }, []);
 
-  // Fetch existing custom times
-  const fetchExistingCustomTimes = () => {
-    api.get('/custom-times/')
-      .then(data => {
-        setExistingCustomTimes(data.custom_times || data || []);
-      })
-      .catch(error => {
-        console.error('Error fetching existing custom times:', error);
-      });
-  };
-
-  // Edit custom time
-  const handleEdit = (customTime) => {
-    setEditingId(customTime.id);
-    setInternalName(customTime.internal_name);
-    setDisplayName(customTime.display_name);
-    setTimeType(customTime.time_type);
-    setFixedTime(customTime.fixed_time || '');
-    setBaseTime(customTime.base_time || '');
-    setOffsetMinutes(customTime.offset_minutes || 0);
-    setDaily(customTime.daily);
-    setDayOfWeek(customTime.day_of_week);
-  };
-
-  // Delete custom time
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this custom time?')) {
-      return;
-    }
-
-    try {
-      await api.delete(`/custom-times/${id}/`);
-      fetchExistingCustomTimes();
-      if (onCustomTimeCreated) {
-        onCustomTimeCreated(); // Trigger refresh in parent
+  // Populate form when editing
+  useEffect(() => {
+    if (editingCustomTime) {
+      setInternalName(editingCustomTime.internal_name);
+      setDisplayName(editingCustomTime.display_name);
+      setDescription(editingCustomTime.description || '');
+      setTimeType(editingCustomTime.time_type);
+      setFixedTime(editingCustomTime.fixed_time || '');
+      setBaseTime(editingCustomTime.base_time || '');
+      setOffsetMinutes(editingCustomTime.offset_minutes || 0);
+      setDaily(editingCustomTime.daily);
+      // Handle both new (days_of_week) and legacy (day_of_week) formats
+      if (editingCustomTime.days_of_week && editingCustomTime.days_of_week.length > 0) {
+        setDaysOfWeek(editingCustomTime.days_of_week);
+      } else if (editingCustomTime.day_of_week !== null && editingCustomTime.day_of_week !== undefined) {
+        setDaysOfWeek([editingCustomTime.day_of_week]);
+      } else {
+        setDaysOfWeek([]);
       }
-    } catch (error) {
-      console.error('Error deleting custom time:', error);
-      alert('Error deleting custom time: ' + (error.message || 'Unknown error'));
+    } else {
+      // Clear form when not editing
+      clearForm();
     }
-  };
-
-  // Cancel edit
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setInternalName('');
-    setDisplayName('');
-    setTimeType('fixed');
-    setFixedTime('');
-    setBaseTime('');
-    setOffsetMinutes(0);
-    setDaily(false);
-    setDayOfWeek(null);
-  };
+  }, [editingCustomTime]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({}); // Clear previous errors
 
     const data = {
       internal_name: internalName,
       display_name: displayName,
+      description: description,
       time_type: timeType,
       fixed_time: timeType === 'fixed' ? fixedTime : null,
       base_time: timeType === 'dynamic' ? baseTime : null,
       offset_minutes: timeType === 'dynamic' ? offsetMinutes : 0,
       daily: daily,
-      day_of_week: daily ? null : dayOfWeek,
+      days_of_week: daily ? [] : daysOfWeek,
     };
 
     try {
       let result;
-      if (editingId) {
+      if (editingCustomTime) {
         // Update existing custom time
-        result = await api.put(`/custom-times/${editingId}/`, data);
+        result = await api.put(`/custom-times/${editingCustomTime.id}/`, data);
       } else {
         // Create new custom time
         result = await api.post('/custom-times/', data);
       }
 
-      console.log(`Custom time ${editingId ? 'updated' : 'created'}:`, result);
-
-      // Refresh the list
-      fetchExistingCustomTimes();
+      console.log(`Custom time ${editingCustomTime ? 'updated' : 'created'}:`, result);
 
       if (onCustomTimeCreated) {
         onCustomTimeCreated(result);
       }
 
       // Clear form fields after successful submission
-      handleCancelEdit();
+      clearForm();
     } catch (error) {
-      console.error(`Error ${editingId ? 'updating' : 'creating'} custom time:`, error);
-      alert(`Error ${editingId ? 'updating' : 'creating'} custom time: ` + (error.message || 'Unknown error'));
+      console.error(`Error ${editingCustomTime ? 'updating' : 'creating'} custom time:`, error);
+
+      // Handle validation errors from backend
+      if (error.errors) {
+        // Error from our API wrapper
+        setErrors(error.errors);
+        console.log('Validation errors:', error.errors);
+      } else if (error.response && error.response.data) {
+        // Direct error response
+        setErrors(error.response.data);
+        console.log('Validation errors:', error.response.data);
+      } else {
+        alert(`Error ${editingCustomTime ? 'updating' : 'creating'} custom time: ` + (error.message || 'Unknown error'));
+      }
+    }
+  };
+
+  const handleDayToggle = (day) => {
+    if (daysOfWeek.includes(day)) {
+      setDaysOfWeek(daysOfWeek.filter(d => d !== day));
+    } else {
+      setDaysOfWeek([...daysOfWeek, day]);
     }
   };
 
   return (
     <div>
-      {/* List of existing custom times */}
-      {existingCustomTimes.length > 0 && (
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Existing Custom Times</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {existingCustomTimes.map((ct) => (
-              <div key={ct.id} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <strong>{ct.display_name}</strong> ({ct.internal_name})
-                    <div style={{ fontSize: '12px', color: '#666' }}>
-                      {ct.time_type === 'fixed' ? `Fixed: ${ct.fixed_time}` : `Dynamic: ${ct.base_time} + ${ct.offset_minutes} min`}
-                      {' '} - {ct.daily ? 'Daily' : `Day ${ct.day_of_week}`}
-                    </div>
-                  </div>
-                  <div>
-                    <button type="button" onClick={() => handleEdit(ct)} style={{ marginRight: '5px' }}>
-                      Edit
-                    </button>
-                    <button type="button" onClick={() => handleDelete(ct.id)} style={{ backgroundColor: '#dc3545', color: 'white' }}>
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Form for create/edit */}
-      <form onSubmit={handleSubmit}>
-        <h2>{editingId ? 'Edit Custom Time' : 'Create Custom Time'}</h2>
-      <div>
-        <label>Internal Name:</label>
-        <input
-          type="text"
-          value={internalName}
-          onChange={(e) => setInternalName(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label>Display Name:</label>
-        <input
-          type="text"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label>Time Type:</label>
-        <select value={timeType} onChange={(e) => setTimeType(e.target.value)}>
-          <option value="fixed">Fixed Time</option>
-          <option value="dynamic">Dynamic Time</option>
-        </select>
-      </div>
-      {timeType === 'fixed' && (
-        <div>
-          <label>Fixed Time:</label>
-          <input
-            type="time"
-            value={fixedTime}
-            onChange={(e) => setFixedTime(e.target.value)}
-            required
-          />
-        </div>
-      )}
-      {timeType === 'dynamic' && (
-        <div>
-          <label>Base Time:</label>
-          <select value={baseTime} onChange={(e) => setBaseTime(e.target.value)} required>
-            <option value="">Select Base Time</option>
-            {availableZmanim.map((zman) => (
-              <option key={zman.internalKey} value={zman.internalKey}>
-                {zman.displayName}
-              </option>
-            ))}
-          </select>
-          <div>
-            <label>Offset (minutes):</label>
-            <input
-              type="number"
-              value={offsetMinutes}
-              onChange={(e) => setOffsetMinutes(parseInt(e.target.value) || 0)}
-            />
-          </div>
-        </div>
-      )}
-      <div>
-        <label>Apply to:</label>
-        <div>
-          <input
-            type="checkbox"
-            checked={daily}
-            onChange={(e) => {
-              setDaily(e.target.checked);
-              if (e.target.checked) {
-                setDayOfWeek(null);
-              }
-            }}
-          />
-          <label>Daily</label>
-        </div>
-        {!daily && (
-          <div>
-            <label>Day of Week:</label>
-            <select
-                value={dayOfWeek !== null ? dayOfWeek : ''}
-                onChange={(e) => setDayOfWeek(e.target.value !== '' ? parseInt(e.target.value) : null)}
-            >
-
-              <option value="">Select Day</option>
-              <option value="0">Sunday</option>
-              <option value="1">Monday</option>
-              <option value="2">Tuesday</option>
-              <option value="3">Wednesday</option>
-              <option value="4">Thursday</option>
-              <option value="5">Friday</option>
-              <option value="6">Saturday</option>
-            </select>
+      <form onSubmit={handleSubmit} style={{ maxWidth: '600px' }}>
+        {/* General error display */}
+        {Object.keys(errors).length > 0 && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: '#fee',
+            border: '1px solid #fcc',
+            borderRadius: '6px',
+            marginBottom: '20px',
+            color: '#c33'
+          }}>
+            <strong>Please fix the following errors:</strong>
+            <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
+              {Object.entries(errors).map(([field, messages]) => (
+                <li key={field}>
+                  <strong>{field.replace(/_/g, ' ')}:</strong> {Array.isArray(messages) ? messages.join(', ') : messages}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
-      </div>
-      <button type="submit">{editingId ? 'Update Custom Time' : 'Create Custom Time'}</button>
-      {editingId && (
-        <button type="button" onClick={handleCancelEdit} style={{ marginLeft: '10px' }}>
-          Cancel
-        </button>
-      )}
-    </form>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Internal Name:</label>
+          <input
+            type="text"
+            value={internalName}
+            onChange={(e) => setInternalName(e.target.value)}
+            required
+            style={{ width: '100%', padding: '8px', border: errors.internal_name ? '2px solid red' : '1px solid #ccc' }}
+          />
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+            Use lowercase letters, numbers, underscores, or hyphens. No spaces. (e.g., "mincha_friday")
+          </div>
+          {errors.internal_name && <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>{errors.internal_name}</div>}
+        </div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Display Name:</label>
+          <input
+            type="text"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            required
+            style={{ width: '100%', padding: '8px', border: errors.display_name ? '2px solid red' : '1px solid #ccc' }}
+          />
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+            This is how it will appear on the display
+          </div>
+          {errors.display_name && <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>{errors.display_name}</div>}
+        </div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Description (Optional):</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            style={{ width: '100%', padding: '8px', border: '1px solid #ccc' }}
+            placeholder="Add notes about this custom time..."
+          />
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+            Internal notes to help you remember the purpose of this time
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Time Type:</label>
+          <select value={timeType} onChange={(e) => setTimeType(e.target.value)} style={{ padding: '8px' }}>
+            <option value="fixed">Fixed Time</option>
+            <option value="dynamic">Dynamic Time</option>
+          </select>
+        </div>
+
+        {timeType === 'fixed' && (
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Fixed Time:</label>
+            <input
+              type="time"
+              value={fixedTime}
+              onChange={(e) => setFixedTime(e.target.value)}
+              required
+              style={{ padding: '8px', border: errors.fixed_time ? '2px solid red' : '1px solid #ccc' }}
+            />
+            {errors.fixed_time && <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>{errors.fixed_time}</div>}
+          </div>
+        )}
+
+        {timeType === 'dynamic' && (
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Base Time:</label>
+            <select value={baseTime} onChange={(e) => setBaseTime(e.target.value)} required style={{ width: '100%', padding: '8px', border: errors.base_time ? '2px solid red' : '1px solid #ccc' }}>
+              <option value="">Select Base Time</option>
+              {availableZmanim.map((zman) => (
+                <option key={zman.internalKey} value={zman.internalKey}>
+                  {zman.displayName}
+                </option>
+              ))}
+            </select>
+            {errors.base_time && <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>{errors.base_time}</div>}
+
+            <div style={{ marginTop: '10px' }}>
+              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Offset (minutes):</label>
+              <input
+                type="number"
+                value={offsetMinutes}
+                onChange={(e) => setOffsetMinutes(parseInt(e.target.value) || 0)}
+                style={{ padding: '8px' }}
+              />
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+                Positive for after, negative for before (e.g., -15 for 15 minutes before)
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Display on:</label>
+          <div style={{ marginBottom: '10px' }}>
+            <label style={{ display: 'flex', alignItems: 'center' }}>
+              <input
+                type="checkbox"
+                checked={daily}
+                onChange={(e) => {
+                  setDaily(e.target.checked);
+                  if (e.target.checked) {
+                    setDaysOfWeek([]);
+                  }
+                }}
+                style={{ marginRight: '8px' }}
+              />
+              <span>Every day</span>
+            </label>
+          </div>
+
+          {!daily && (
+            <div>
+              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Specific days:</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: '10px' }}>
+                {[
+                  { value: 0, label: 'Sunday' },
+                  { value: 1, label: 'Monday' },
+                  { value: 2, label: 'Tuesday' },
+                  { value: 3, label: 'Wednesday' },
+                  { value: 4, label: 'Thursday' },
+                  { value: 5, label: 'Friday' },
+                  { value: 6, label: 'Saturday' }
+                ].map(day => (
+                  <label key={day.value} style={{ display: 'flex', alignItems: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={daysOfWeek.includes(day.value)}
+                      onChange={() => handleDayToggle(day.value)}
+                      style={{ marginRight: '8px' }}
+                    />
+                    <span>{day.label}</span>
+                  </label>
+                ))}
+              </div>
+              {errors.days_of_week && <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>{errors.days_of_week}</div>}
+            </div>
+          )}
+        </div>
+
+        <div style={{
+          marginTop: '30px',
+          paddingTop: '20px',
+          borderTop: '1px solid #e1e8ed',
+          display: 'flex',
+          gap: '12px',
+          justifyContent: 'flex-end'
+        }}>
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            style={{
+              padding: '12px 24px',
+              fontSize: '15px',
+              fontWeight: '500',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              backgroundColor: 'white',
+              color: '#374151',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#f9fafb';
+              e.target.style.borderColor = '#9ca3af';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'white';
+              e.target.style.borderColor = '#d1d5db';
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            style={{
+              padding: '12px 32px',
+              fontSize: '15px',
+              fontWeight: '600',
+              border: 'none',
+              borderRadius: '8px',
+              backgroundColor: editingCustomTime ? '#3498db' : '#27ae60',
+              color: 'white',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = editingCustomTime ? '#2980b9' : '#229954';
+              e.target.style.transform = 'translateY(-1px)';
+              e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = editingCustomTime ? '#3498db' : '#27ae60';
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            }}
+          >
+            {editingCustomTime ? '✓ Update Custom Time' : '+ Create Custom Time'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

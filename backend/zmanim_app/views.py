@@ -113,10 +113,19 @@ class ShulDetailView(generics.RetrieveUpdateAPIView):
     """Get or update shul details"""
     serializer_class = ShulSerializer
     permission_classes = [IsAuthenticated]
-    
+
     def get_object(self):
         # Return the shul owned by the current user
         return self.request.user.shuls.first()
+
+    def update(self, request, *args, **kwargs):
+        # Handle logo removal if requested
+        if request.data.get('remove_logo') == 'true':
+            shul = self.get_object()
+            if shul.center_logo:
+                shul.center_logo.delete(save=True)
+
+        return super().update(request, *args, **kwargs)
 
 
 @api_view(['POST'])
@@ -183,11 +192,85 @@ def update_coordinates(request):
     return Response(ShulSerializer(shul).data)
 
 
-def format_value(value, time_format="24h", show_seconds=True):
-    """Format time values for display"""
+def get_rounding_direction(field_name):
+    """Determine rounding direction for a field based on halachic stringency"""
+    field_lower = field_name.lower()
+
+    # Round DOWN (truncate) - Latest times (deadlines)
+    round_down_fields = [
+        'sof zman', 'candle lighting', 'kiddush levana latest'
+    ]
+    if any(field in field_lower for field in round_down_fields):
+        return 'down'
+
+    # Round UP (ceiling) - Earliest times
+    round_up_fields = [
+        'alos', 'netz', 'neitz', 'sunrise', 'mincha gedola', 'mincha ketana',
+        'plag', 'tzais', 'tzeis', 'tzeit', 'kiddush levana earliest'
+    ]
+    if any(field in field_lower for field in round_up_fields):
+        return 'up'
+
+    # Round to NEAREST - Neutral times
+    round_nearest_fields = ['shkia', 'shkiah', 'sunset', 'chatzos', 'chatzot', 'sun transit']
+    if any(field in field_lower for field in round_nearest_fields):
+        return 'nearest'
+
+    # Default to rounding up for safety (le'chumra)
+    return 'up'
+
+
+def round_time_for_display(time_obj, field_name=''):
+    """Round a time object based on field type for halachic stringency"""
+    from datetime import time as dt_time
+
+    if not isinstance(time_obj, (dt_time, datetime.datetime)):
+        return time_obj
+
+    # Extract time if it's a datetime object
+    if isinstance(time_obj, datetime.datetime):
+        time_part = time_obj.time()
+        is_datetime = True
+    else:
+        time_part = time_obj
+        is_datetime = False
+
+    seconds = time_part.second
+    if seconds == 0:
+        return time_obj  # No rounding needed
+
+    direction = get_rounding_direction(field_name)
+
+    # Convert time to datetime for easier manipulation
+    dt = datetime.datetime.combine(datetime.datetime.today(), time_part)
+
+    if direction == 'down':
+        # Round down - just remove seconds
+        dt = dt.replace(second=0, microsecond=0)
+    elif direction == 'up':
+        # Round up - add 1 minute if there are any seconds
+        dt = dt.replace(second=0, microsecond=0) + timedelta(minutes=1)
+    else:  # nearest
+        # Round to nearest minute
+        if seconds >= 30:
+            dt = dt.replace(second=0, microsecond=0) + timedelta(minutes=1)
+        else:
+            dt = dt.replace(second=0, microsecond=0)
+
+    # Return in same format as input
+    if is_datetime:
+        return datetime.datetime.combine(time_obj.date(), dt.time())
+    else:
+        return dt.time()
+
+
+def format_value(value, time_format="24h", show_seconds=True, field_name=''):
+    """Format time values for display with intelligent rounding"""
     if hasattr(value, 'strftime'):
+        # Apply intelligent rounding if not showing seconds
         if not show_seconds and hasattr(value, 'replace'):
-            value = value.replace(second=0)
+            value = round_time_for_display(value, field_name)
+
         if time_format == "12h":
             formatted_time = value.strftime('%I:%M:%S' if show_seconds else '%I:%M').lstrip('0')
             return formatted_time
@@ -296,10 +379,10 @@ def get_zmanim(request):
         'Is Fast Day': daily_zmanim.is_taanis,
         'Is Assur Bemelacha': daily_zmanim.is_assur_bemelacha,
         'Is Erev Rosh Chodesh': daily_zmanim.is_erev_rosh_chodesh,
-        'Molad': format_value(daily_zmanim.molad_datetime, shul.time_format, shul.show_seconds) if daily_zmanim.molad_datetime else None,
-        'Kiddush Levana Earliest (3 Days)': format_value(daily_zmanim.kiddush_levana_earliest_3_days, shul.time_format, shul.show_seconds) if daily_zmanim.kiddush_levana_earliest_3_days else None,
-        'Kiddush Levana Earliest (7 Days)': format_value(daily_zmanim.kiddush_levana_earliest_7_days, shul.time_format, shul.show_seconds) if daily_zmanim.kiddush_levana_earliest_7_days else None,
-        'Kiddush Levana Latest (15 Days)': format_value(daily_zmanim.kiddush_levana_latest_15_days, shul.time_format, shul.show_seconds) if daily_zmanim.kiddush_levana_latest_15_days else None,
+        'Molad': format_value(daily_zmanim.molad_datetime, shul.time_format, shul.show_seconds, 'Molad') if daily_zmanim.molad_datetime else None,
+        'Kiddush Levana Earliest (3 Days)': format_value(daily_zmanim.kiddush_levana_earliest_3_days, shul.time_format, shul.show_seconds, 'Kiddush Levana Earliest (3 Days)') if daily_zmanim.kiddush_levana_earliest_3_days else None,
+        'Kiddush Levana Earliest (7 Days)': format_value(daily_zmanim.kiddush_levana_earliest_7_days, shul.time_format, shul.show_seconds, 'Kiddush Levana Earliest (7 Days)') if daily_zmanim.kiddush_levana_earliest_7_days else None,
+        'Kiddush Levana Latest (15 Days)': format_value(daily_zmanim.kiddush_levana_latest_15_days, shul.time_format, shul.show_seconds, 'Kiddush Levana Latest (15 Days)') if daily_zmanim.kiddush_levana_latest_15_days else None,
     }
 
     # Create formatted Hebrew date
@@ -369,6 +452,25 @@ class CustomTimeListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         shul = self.request.user.shuls.first()
         serializer.save(shul=shul)
+
+    def list(self, request, *args, **kwargs):
+        """Override list to include calculated times for today"""
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        # Add calculated times for today
+        today = date.today()
+        data = []
+        for item, custom_time_obj in zip(serializer.data, queryset):
+            item_dict = dict(item)
+            calculated_time = custom_time_obj.calculate_time(today)
+            if calculated_time:
+                item_dict['calculated_time'] = calculated_time.isoformat()
+            else:
+                item_dict['calculated_time'] = None
+            data.append(item_dict)
+
+        return Response(data)
 
 
 class CustomTimeDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -580,33 +682,33 @@ def shul_display_data(request, shul_slug):
 
     # Format zmanim data - BASIC ZMANIM
     zmanim_data = {
-        'Alos HaShachar': format_value(daily_zmanim.alos, shul.time_format, shul.show_seconds),
-        'Neitz HaChamah': format_value(daily_zmanim.hanetz, shul.time_format, shul.show_seconds),
-        'Chatzos': format_value(daily_zmanim.chatzos, shul.time_format, shul.show_seconds),
-        'Mincha Gedola': format_value(daily_zmanim.mincha_gedola, shul.time_format, shul.show_seconds),
-        'Mincha Ketana': format_value(daily_zmanim.mincha_ketana, shul.time_format, shul.show_seconds),
-        'Plag HaMincha': format_value(daily_zmanim.plag_hamincha, shul.time_format, shul.show_seconds),
-        'Shkiah': format_value(daily_zmanim.shkia, shul.time_format, shul.show_seconds),
-        'Tzais': format_value(daily_zmanim.tzais, shul.time_format, shul.show_seconds),
-        'Tzais 72 minutes': format_value(daily_zmanim.tzais_72, shul.time_format, shul.show_seconds),
-        'Sof Zman Krias Shema GRA': format_value(daily_zmanim.sof_zman_krias_shema_gra, shul.time_format, shul.show_seconds),
-        'Sof Zman Krias Shema MGA': format_value(daily_zmanim.sof_zman_krias_shema_mga, shul.time_format, shul.show_seconds),
-        'Sof Zman Tefillah GRA': format_value(daily_zmanim.sof_zman_tfila_gra, shul.time_format, shul.show_seconds),
-        'Sof Zman Tefillah MGA': format_value(daily_zmanim.sof_zman_tfila_mga, shul.time_format, shul.show_seconds),
-        'Candle Lighting': format_value(daily_zmanim.candle_lighting, shul.time_format, shul.show_seconds),
+        'Alos HaShachar': format_value(daily_zmanim.alos, shul.time_format, shul.show_seconds, 'Alos HaShachar'),
+        'Neitz HaChamah': format_value(daily_zmanim.hanetz, shul.time_format, shul.show_seconds, 'Neitz HaChamah'),
+        'Chatzos': format_value(daily_zmanim.chatzos, shul.time_format, shul.show_seconds, 'Chatzos'),
+        'Mincha Gedola': format_value(daily_zmanim.mincha_gedola, shul.time_format, shul.show_seconds, 'Mincha Gedola'),
+        'Mincha Ketana': format_value(daily_zmanim.mincha_ketana, shul.time_format, shul.show_seconds, 'Mincha Ketana'),
+        'Plag HaMincha': format_value(daily_zmanim.plag_hamincha, shul.time_format, shul.show_seconds, 'Plag HaMincha'),
+        'Shkiah': format_value(daily_zmanim.shkia, shul.time_format, shul.show_seconds, 'Shkiah'),
+        'Tzais': format_value(daily_zmanim.tzais, shul.time_format, shul.show_seconds, 'Tzais'),
+        'Tzais 72 minutes': format_value(daily_zmanim.tzais_72, shul.time_format, shul.show_seconds, 'Tzais 72 minutes'),
+        'Sof Zman Krias Shema GRA': format_value(daily_zmanim.sof_zman_krias_shema_gra, shul.time_format, shul.show_seconds, 'Sof Zman Krias Shema GRA'),
+        'Sof Zman Krias Shema MGA': format_value(daily_zmanim.sof_zman_krias_shema_mga, shul.time_format, shul.show_seconds, 'Sof Zman Krias Shema MGA'),
+        'Sof Zman Tefillah GRA': format_value(daily_zmanim.sof_zman_tfila_gra, shul.time_format, shul.show_seconds, 'Sof Zman Tefillah GRA'),
+        'Sof Zman Tefillah MGA': format_value(daily_zmanim.sof_zman_tfila_mga, shul.time_format, shul.show_seconds, 'Sof Zman Tefillah MGA'),
+        'Candle Lighting': format_value(daily_zmanim.candle_lighting, shul.time_format, shul.show_seconds, 'Candle Lighting'),
         # ADDITIONAL ZMANIM
-        'Sea Level Sunrise': format_value(daily_zmanim.sea_level_sunrise, shul.time_format, shul.show_seconds),
-        'Sea Level Sunset': format_value(daily_zmanim.sea_level_sunset, shul.time_format, shul.show_seconds),
-        'Elevation Adjusted Sunrise': format_value(daily_zmanim.elevation_adjusted_sunrise, shul.time_format, shul.show_seconds),
-        'Elevation Adjusted Sunset': format_value(daily_zmanim.elevation_adjusted_sunset, shul.time_format, shul.show_seconds),
-        'Alos 16.1°': format_value(daily_zmanim.alos_16_1, shul.time_format, shul.show_seconds),
-        'Alos 18°': format_value(daily_zmanim.alos_18, shul.time_format, shul.show_seconds),
-        'Alos 19.8°': format_value(daily_zmanim.alos_19_8, shul.time_format, shul.show_seconds),
-        'Tzais 8.5°': format_value(daily_zmanim.tzais_8_5, shul.time_format, shul.show_seconds),
-        'Tzais 7.083°': format_value(daily_zmanim.tzais_7_083, shul.time_format, shul.show_seconds),
-        'Tzais 5.95°': format_value(daily_zmanim.tzais_5_95, shul.time_format, shul.show_seconds),
-        'Tzais 6.45°': format_value(daily_zmanim.tzais_6_45, shul.time_format, shul.show_seconds),
-        'Sun Transit': format_value(daily_zmanim.sun_transit, shul.time_format, shul.show_seconds),
+        'Sea Level Sunrise': format_value(daily_zmanim.sea_level_sunrise, shul.time_format, shul.show_seconds, 'Sea Level Sunrise'),
+        'Sea Level Sunset': format_value(daily_zmanim.sea_level_sunset, shul.time_format, shul.show_seconds, 'Sea Level Sunset'),
+        'Elevation Adjusted Sunrise': format_value(daily_zmanim.elevation_adjusted_sunrise, shul.time_format, shul.show_seconds, 'Elevation Adjusted Sunrise'),
+        'Elevation Adjusted Sunset': format_value(daily_zmanim.elevation_adjusted_sunset, shul.time_format, shul.show_seconds, 'Elevation Adjusted Sunset'),
+        'Alos 16.1°': format_value(daily_zmanim.alos_16_1, shul.time_format, shul.show_seconds, 'Alos 16.1°'),
+        'Alos 18°': format_value(daily_zmanim.alos_18, shul.time_format, shul.show_seconds, 'Alos 18°'),
+        'Alos 19.8°': format_value(daily_zmanim.alos_19_8, shul.time_format, shul.show_seconds, 'Alos 19.8°'),
+        'Tzais 8.5°': format_value(daily_zmanim.tzais_8_5, shul.time_format, shul.show_seconds, 'Tzais 8.5°'),
+        'Tzais 7.083°': format_value(daily_zmanim.tzais_7_083, shul.time_format, shul.show_seconds, 'Tzais 7.083°'),
+        'Tzais 5.95°': format_value(daily_zmanim.tzais_5_95, shul.time_format, shul.show_seconds, 'Tzais 5.95°'),
+        'Tzais 6.45°': format_value(daily_zmanim.tzais_6_45, shul.time_format, shul.show_seconds, 'Tzais 6.45°'),
+        'Sun Transit': format_value(daily_zmanim.sun_transit, shul.time_format, shul.show_seconds, 'Sun Transit'),
         # HALACHIC HOURS
         'Shaah Zmanis GRA': f"{(daily_zmanim.shaah_zmanis_gra / 60000):.1f} min" if daily_zmanim.shaah_zmanis_gra else None,
         'Shaah Zmanis MGA': f"{(daily_zmanim.shaah_zmanis_mga / 60000):.1f} min" if daily_zmanim.shaah_zmanis_mga else None,
@@ -659,10 +761,10 @@ def shul_display_data(request, shul_slug):
         'Is Fast Day': daily_zmanim.is_taanis,
         'Is Assur Bemelacha': daily_zmanim.is_assur_bemelacha,
         'Is Erev Rosh Chodesh': daily_zmanim.is_erev_rosh_chodesh,
-        'Molad': format_value(daily_zmanim.molad_datetime, shul.time_format, shul.show_seconds) if daily_zmanim.molad_datetime else None,
-        'Kiddush Levana Earliest (3 Days)': format_value(daily_zmanim.kiddush_levana_earliest_3_days, shul.time_format, shul.show_seconds) if daily_zmanim.kiddush_levana_earliest_3_days else None,
-        'Kiddush Levana Earliest (7 Days)': format_value(daily_zmanim.kiddush_levana_earliest_7_days, shul.time_format, shul.show_seconds) if daily_zmanim.kiddush_levana_earliest_7_days else None,
-        'Kiddush Levana Latest (15 Days)': format_value(daily_zmanim.kiddush_levana_latest_15_days, shul.time_format, shul.show_seconds) if daily_zmanim.kiddush_levana_latest_15_days else None,
+        'Molad': format_value(daily_zmanim.molad_datetime, shul.time_format, shul.show_seconds, 'Molad') if daily_zmanim.molad_datetime else None,
+        'Kiddush Levana Earliest (3 Days)': format_value(daily_zmanim.kiddush_levana_earliest_3_days, shul.time_format, shul.show_seconds, 'Kiddush Levana Earliest (3 Days)') if daily_zmanim.kiddush_levana_earliest_3_days else None,
+        'Kiddush Levana Earliest (7 Days)': format_value(daily_zmanim.kiddush_levana_earliest_7_days, shul.time_format, shul.show_seconds, 'Kiddush Levana Earliest (7 Days)') if daily_zmanim.kiddush_levana_earliest_7_days else None,
+        'Kiddush Levana Latest (15 Days)': format_value(daily_zmanim.kiddush_levana_latest_15_days, shul.time_format, shul.show_seconds, 'Kiddush Levana Latest (15 Days)') if daily_zmanim.kiddush_levana_latest_15_days else None,
     }
 
     # Get custom times for today (using DailyZmanim instead of Shul fields)
@@ -671,12 +773,8 @@ def shul_display_data(request, shul_slug):
     day_of_week = (weekday + 1) % 7
 
     from django.db import models
-    custom_times = CustomTime.objects.filter(
-        shul=shul
-    ).filter(
-        models.Q(daily=True) |
-        models.Q(day_of_week=day_of_week)
-    )
+    # Get all custom times for this shul - we'll filter by day in calculate_time method
+    custom_times = CustomTime.objects.filter(shul=shul)
 
     custom_times_data = []
     for custom_time in custom_times:
@@ -684,6 +782,7 @@ def shul_display_data(request, shul_slug):
         calculated_time = custom_time.calculate_time(today)
         if calculated_time:
             custom_times_data.append({
+                'internal_name': custom_time.internal_name,
                 'display_name': custom_time.display_name,
                 'time': format_value(calculated_time.time(), shul.time_format, shul.show_seconds),
                 'is_daily': custom_time.daily
@@ -734,7 +833,14 @@ def shul_display_data(request, shul_slug):
             'language': shul.language,
             'time_format': shul.time_format,
             'show_seconds': shul.show_seconds,
-            'timezone': shul.timezone
+            'timezone': shul.timezone,
+            'center_logo': request.build_absolute_uri(shul.center_logo.url) if shul.center_logo else None,
+            'center_logo_size': shul.center_logo_size,
+            'center_text': shul.center_text,
+            'center_text_size': shul.center_text_size,
+            'center_text_color': shul.center_text_color,
+            'center_text_font': shul.center_text_font,
+            'center_vertical_position': shul.center_vertical_position
         },
         'zmanim': zmanim_data,
         'limudim': translated_limudim,

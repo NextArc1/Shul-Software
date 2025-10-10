@@ -29,8 +29,18 @@ class ApiService {
       
       // Handle other errors
       if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.detail || error.error || `HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+
+        // For validation errors (400), preserve the full error object
+        if (response.status === 400 && typeof errorData === 'object' && !errorData.detail) {
+          const error = new Error('Validation failed');
+          error.errors = errorData;
+          error.status = response.status;
+          throw error;
+        }
+
+        // For other errors, use detail or error message
+        throw new Error(errorData.detail || errorData.error || `HTTP error! status: ${response.status}`);
       }
       
       // Return JSON response

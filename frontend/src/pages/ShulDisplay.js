@@ -116,24 +116,26 @@ const Ribbon = ({ text }) => (
 );
 
 /* ================= Helpers ================= */
-const formatTime = (raw, format = "24h") => {
-  if (!raw) return "";
-  const m = /^(\d{1,2}):(\d{2})$/.exec(String(raw).trim());
-  if (!m) return String(raw);
-  const [, hh, mm] = m;
-  const d = new Date();
-  d.setHours(Number(hh), Number(mm), 0, 0);
-  const formatted = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: format === "12h" });
-  // Remove AM/PM
-  return formatted.replace(/\s?(AM|PM)/i, '');
-};
+// Times are formatted by the backend with intelligent rounding and no AM/PM
 
 /* ================= Clock ================= */
 const useClock = (twelveHour) => {
   const [now, setNow] = useState(new Date());
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
-  const timeRaw = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: !!twelveHour });
-  const time = timeRaw.replace(/\s?(AM|PM)/i, ''); // Remove AM/PM
+  const options = {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: !!twelveHour
+  };
+  const timeRaw = now.toLocaleTimeString("en-US", options);
+  let time = timeRaw.replace(/\s?(AM|PM)/i, ''); // Remove AM/PM
+
+  // Remove leading zero for 12-hour format
+  if (twelveHour && time.startsWith('0')) {
+    time = time.substring(1);
+  }
+
   const date = now.toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   return { time, date };
 };
@@ -178,6 +180,7 @@ export default function ShulDisplay() {
   }, [shulSlug, fetchDisplayData]);
 
   const timeFormat = (data?.shul?.time_format) || "24h";
+  const showSeconds = (data?.shul?.show_seconds) || false;
   const { time: liveClock, date: longDate } = useClock(timeFormat === "12h");
 
   const bgStyle = useMemo(() => ({
@@ -254,31 +257,27 @@ export default function ShulDisplay() {
   };
 
   // Helper function to format value based on type
-  const formatValue = (value, isTime = false) => {
+  const formatValue = (value, isTime = false, fieldName = '') => {
     if (value === null || value === undefined) return null;
 
     // Handle booleans
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
 
-    // Handle times (strings that look like HH:MM)
-    if (isTime && typeof value === 'string' && /^\d{1,2}:\d{2}/.test(value)) {
-      return formatTime(value, timeFormat);
-    }
-
-    // Return as string
+    // Times are already formatted by the backend with intelligent rounding
+    // Just return them as-is
     return String(value);
   };
 
   // Map layout boxes to display data
   const shabbosTimes = layout?.box1?.items?.map(item => {
     const value = getItemValue(item);
-    const formatted = formatValue(value, true);
+    const formatted = formatValue(value, true, item.name);
     return formatted ? { time: formatted, label: getDisplayName(item) } : null;
   }).filter(Boolean) || [];
 
   const weekdayTimes = layout?.box2?.items?.map(item => {
     const value = getItemValue(item);
-    const formatted = formatValue(value, true);
+    const formatted = formatValue(value, true, item.name);
     return formatted ? { time: formatted, label: getDisplayName(item) } : null;
   }).filter(Boolean) || [];
 
@@ -320,9 +319,9 @@ export default function ShulDisplay() {
   ];
 
   return (
-    <div className="min-h-screen w-full text-amber-50" style={bgStyle}>
+    <div className="h-screen w-full text-amber-50 overflow-hidden flex flex-col" style={bgStyle}>
       {/* Top strip */}
-      <div className="w-full bg-[#162A45]/95 text-amber-100">
+      <div className="w-full bg-[#162A45]/95 text-amber-100 flex-shrink-0">
         <div className="mx-auto max-w-[1600px] px-6">
           <div className="grid grid-cols-3 items-center py-3 text-[20px]">
             <div className="text-left">{longDate}</div>
@@ -333,24 +332,34 @@ export default function ShulDisplay() {
       </div>
 
       {/* Main layout */}
-      <div className="mx-auto max-w-[1800px] px-8 pt-9 pb-16">
+      <div className="mx-auto max-w-[1800px] w-full px-8 pt-6 pb-6 flex-1 overflow-hidden flex items-center">
 
-        <div className="grid grid-cols-[minmax(300px,27%)_minmax(0,54%)_minmax(300px,27%)] gap-8">
+        <div className="w-full grid grid-cols-[minmax(300px,27%)_minmax(0,54%)_minmax(300px,27%)] gap-8">
 
           {/* LEFT COLUMN */}
           <div className="">
             {/* Tall Shabbos panel */}
-            <div className="relative rounded-xl border-[3px] border-[#d4af37] min-h-[600px] p-8 flex flex-col">
+            <div className="relative rounded-xl border-[3px] border-[#d4af37] h-[600px] p-8 flex flex-col overflow-hidden">
               <div className="mx-auto w-fit px-6 py-2 rounded-lg border-[3px] border-[#d4af37] bg-[#162A45]/90 text-center text-amber-100 text-[24px] font-semibold mb-4">{box1Name}</div>
               <div className="mb-3 text-center" dir="rtl">
-                <div className="text-[44px] font-bold">{parsha}</div>
+                <div className="text-[44px] font-bold whitespace-nowrap">{parsha}</div>
               </div>
               <AutoScrollContainer className="mt-4 space-y-3 flex-1">
                 {shabbosTimes.map((r, i) => (
                   <div key={i} className="grid grid-cols-[1fr_auto_1fr] text-amber-100 text-[22px]">
-                    <div className="text-left tabular-nums">{r.time}</div>
-                    <div className="mx-3" />
-                    <div className="text-right" dir="rtl">{r.label}</div>
+                    {isHebrewLanguage ? (
+                      <>
+                        <div className="text-left tabular-nums whitespace-nowrap">{r.time}</div>
+                        <div className="mx-3" />
+                        <div className="text-right whitespace-nowrap" dir="rtl">{r.label}</div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-left whitespace-nowrap">{r.label}</div>
+                        <div className="mx-3" />
+                        <div className="text-right tabular-nums whitespace-nowrap">{r.time}</div>
+                      </>
+                    )}
                   </div>
                 ))}
               </AutoScrollContainer>
@@ -361,23 +370,58 @@ export default function ShulDisplay() {
               <AutoScrollContainer className="space-y-2 flex-1">
                 {dlRows.length ? dlRows.map((r, i) => (
                   <div key={i} className="grid grid-cols-2 text-amber-100 text-[18px]">
-                    <div className="text-left pl-2 tabular-nums">{r.value}</div>
-                    <div className="text-right pr-2" dir="rtl">{r.label}</div>
+                    {isHebrewLanguage ? (
+                      <>
+                        <div className="text-left pl-2 tabular-nums whitespace-nowrap">{r.value}</div>
+                        <div className="text-right pr-2 whitespace-nowrap" dir="rtl">{r.label}</div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-left pl-2 whitespace-nowrap">{r.label}</div>
+                        <div className="text-right pr-2 tabular-nums whitespace-nowrap">{r.value}</div>
+                      </>
+                    )}
                   </div>
                 )) : <div className="text-center text-amber-200/70">—</div>}
               </AutoScrollContainer>
             </div>
           </div>
 
-          {/* CENTER COLUMN: top blank; bottom two small boxes side-by-side */}
+          {/* CENTER COLUMN: logo/text at top; bottom two small boxes side-by-side */}
           <div className="flex flex-col">
-            <div className="flex-1" />
+            {/* Center Logo or Text Display */}
+            <div className="flex-1 flex flex-col items-center px-8">
+              <div style={{ flex: shul.center_vertical_position || 50 }} />
+              <div className="flex items-center justify-center">
+                {shul.center_logo ? (
+                  <img
+                    src={shul.center_logo}
+                    alt="Shul Logo"
+                    className="max-w-full object-contain"
+                    style={{ maxHeight: `${shul.center_logo_size || 400}px` }}
+                  />
+                ) : shul.center_text ? (
+                  <div
+                    className="text-center font-bold"
+                    style={{
+                      fontSize: `${shul.center_text_size || 48}px`,
+                      color: shul.center_text_color || '#ffc764',
+                      fontFamily: shul.center_text_font || 'Arial'
+                    }}
+                    dir={isHebrewLanguage ? 'rtl' : 'ltr'}
+                  >
+                    {shul.center_text}
+                  </div>
+                ) : null}
+              </div>
+              <div style={{ flex: 100 - (shul.center_vertical_position || 50) }} />
+            </div>
             <div className="grid grid-cols-2 gap-6 mt-4">
               <div>
                 <div className="text-center text-amber-200 mb-2" dir="rtl">לעילוי נשמת</div>
                 <div className={`rounded-xl border-[3px] border-[#d4af37] p-6 ${SMALL_BOX_H} flex flex-col`}>
                   <AutoScrollContainer className="space-y-2 text-center flex-1" dir="rtl">
-                    {ilui.length ? ilui.map((n, i) => <div key={i}>{n}</div>) : <div>—</div>}
+                    {ilui.length ? ilui.map((n, i) => <div key={i} className="whitespace-nowrap">{n}</div>) : <div>—</div>}
                   </AutoScrollContainer>
                 </div>
               </div>
@@ -385,7 +429,7 @@ export default function ShulDisplay() {
                 <div className="text-center text-amber-200 mb-2" dir="rtl">רפואה שלמה</div>
                 <div className={`rounded-xl border-[3px] border-[#d4af37] p-6 ${SMALL_BOX_H} flex flex-col`}>
                   <AutoScrollContainer className="space-y-2 text-center flex-1" dir="rtl">
-                    {refuah.length ? refuah.map((n, i) => <div key={i}>{n}</div>) : <div>—</div>}
+                    {refuah.length ? refuah.map((n, i) => <div key={i} className="whitespace-nowrap">{n}</div>) : <div>—</div>}
                   </AutoScrollContainer>
                 </div>
               </div>
@@ -395,14 +439,24 @@ export default function ShulDisplay() {
           {/* RIGHT COLUMN */}
           <div className="">
             {/* Tall Weekday panel */}
-            <div className="relative rounded-xl border-[3px] border-[#d4af37] min-h-[600px] p-8 flex flex-col">
+            <div className="relative rounded-xl border-[3px] border-[#d4af37] h-[600px] p-8 flex flex-col overflow-hidden">
               <div className="mx-auto w-fit px-6 py-2 rounded-lg border-[3px] border-[#d4af37] bg-[#162A45]/90 text-center text-amber-100 text-[24px] font-semibold mb-4">{box2Name}</div>
               <AutoScrollContainer className="mt-6 space-y-3 flex-1">
                 {weekdayTimes.map((r, i) => (
                   <div key={i} className="grid grid-cols-[1fr_auto_1fr] text-amber-100 text-[22px]">
-                    <div className="text-left tabular-nums">{r.time}</div>
-                    <div className="mx-3" />
-                    <div className="text-right" dir="rtl">{r.label}</div>
+                    {isHebrewLanguage ? (
+                      <>
+                        <div className="text-left tabular-nums whitespace-nowrap">{r.time}</div>
+                        <div className="mx-3" />
+                        <div className="text-right whitespace-nowrap" dir="rtl">{r.label}</div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-left whitespace-nowrap">{r.label}</div>
+                        <div className="mx-3" />
+                        <div className="text-right tabular-nums whitespace-nowrap">{r.time}</div>
+                      </>
+                    )}
                   </div>
                 ))}
               </AutoScrollContainer>
@@ -413,8 +467,17 @@ export default function ShulDisplay() {
               <AutoScrollContainer className="space-y-2 flex-1">
                 {box4Items.length ? box4Items.map((r, i) => (
                   <div key={i} className="grid grid-cols-2 text-amber-100 text-[18px]">
-                    <div className="text-left pl-2 tabular-nums">{r.value}</div>
-                    <div className="text-right pr-2" dir="rtl">{r.label}</div>
+                    {isHebrewLanguage ? (
+                      <>
+                        <div className="text-left pl-2 tabular-nums whitespace-nowrap">{r.value}</div>
+                        <div className="text-right pr-2 whitespace-nowrap" dir="rtl">{r.label}</div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-left pl-2 whitespace-nowrap">{r.label}</div>
+                        <div className="text-right pr-2 tabular-nums whitespace-nowrap">{r.value}</div>
+                      </>
+                    )}
                   </div>
                 )) : <div className="text-center text-amber-200/70">—</div>}
               </AutoScrollContainer>

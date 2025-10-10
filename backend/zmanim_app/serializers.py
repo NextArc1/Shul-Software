@@ -33,17 +33,17 @@ class ShulSerializer(serializers.ModelSerializer):
         # Check if coordinates are being updated
         latitude = validated_data.get('latitude', instance.latitude)
         longitude = validated_data.get('longitude', instance.longitude)
-        
+
         # If coordinates changed, update timezone
         if (latitude != instance.latitude or longitude != instance.longitude) and latitude and longitude:
             from .views import fetch_timezone_by_coordinates
             timezone = fetch_timezone_by_coordinates(latitude, longitude)
             if timezone:
                 validated_data['timezone'] = timezone
-        
+
         # Update the instance
         instance = super().update(instance, validated_data)
-        
+
         # Trigger zmanim recalculation if coordinates changed
         if (latitude != instance.latitude or longitude != instance.longitude) and latitude and longitude:
             from .tasks import recalculate_shul_zmanim
@@ -58,6 +58,24 @@ class CustomTimeSerializer(serializers.ModelSerializer):
         model = CustomTime
         fields = '__all__'
         read_only_fields = ('shul', 'calculated_time')
+
+    def validate_internal_name(self, value):
+        """Validate internal name format"""
+        import re
+
+        # Check for spaces
+        if ' ' in value:
+            raise serializers.ValidationError('Internal name cannot contain spaces. Use underscores (_) instead.')
+
+        # Check for special characters (only allow letters, numbers, underscores, hyphens)
+        if not re.match(r'^[a-zA-Z0-9_-]+$', value):
+            raise serializers.ValidationError('Internal name can only contain letters, numbers, underscores, and hyphens.')
+
+        # Check length
+        if len(value) < 3:
+            raise serializers.ValidationError('Internal name must be at least 3 characters long.')
+
+        return value.lower()  # Convert to lowercase for consistency
 
     def validate(self, data):
         # Validate that internal_name is unique for this shul
@@ -91,11 +109,25 @@ class CustomTimeSerializer(serializers.ModelSerializer):
                     'base_time': 'Base time is required when time type is "dynamic".'
                 })
 
-        # Validate day_of_week and daily
-        if not data.get('daily') and data.get('day_of_week') is None:
-            raise serializers.ValidationError({
-                'day_of_week': 'Day of week is required when not set to daily.'
-            })
+        # Validate days selection
+        daily = data.get('daily', False)
+        days_of_week = data.get('days_of_week', [])
+        day_of_week = data.get('day_of_week')  # Legacy field
+
+        if not daily:
+            # Not daily - must have at least one day selected
+            if not days_of_week and day_of_week is None:
+                raise serializers.ValidationError({
+                    'days_of_week': 'Please select at least one day, or mark as daily.'
+                })
+
+            # Validate days_of_week values
+            if days_of_week:
+                for day in days_of_week:
+                    if not isinstance(day, int) or day < 0 or day > 6:
+                        raise serializers.ValidationError({
+                            'days_of_week': 'Each day must be a number between 0 (Sunday) and 6 (Saturday).'
+                        })
 
         return data
 

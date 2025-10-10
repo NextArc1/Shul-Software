@@ -13,6 +13,15 @@ const ZipcodeForm = () => {
   const [isLoadingCoordinates, setIsLoadingCoordinates] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [currentZipCode, setCurrentZipCode] = useState('');
+  const [centerText, setCenterText] = useState('');
+  const [centerTextSize, setCenterTextSize] = useState(48);
+  const [centerTextColor, setCenterTextColor] = useState('#ffc764');
+  const [centerTextFont, setCenterTextFont] = useState('Arial');
+  const [centerVerticalPosition, setCenterVerticalPosition] = useState(50);
+  const [centerLogo, setCenterLogo] = useState(null);
+  const [centerLogoSize, setCenterLogoSize] = useState(400);
+  const [currentLogoUrl, setCurrentLogoUrl] = useState('');
+  const [removeLogo, setRemoveLogo] = useState(false);
 
   // Styles
   const styles = {
@@ -197,13 +206,23 @@ const ZipcodeForm = () => {
 
       try {
         const data = await api.get('/shul/');
-        if (data.zip_code) setCurrentZipCode(data.zip_code);
+        if (data.zip_code) {
+          setCurrentZipCode(data.zip_code);
+          setZipCode(data.zip_code); // Also populate the input field
+        }
         if (data.country) setCountry(data.country);
         if (data.latitude) setLatitude(data.latitude.toString());
         if (data.longitude) setLongitude(data.longitude.toString());
         if (data.language) setLanguage(data.language);
         if (data.time_format) setTimeFormat(data.time_format);
         if (data.show_seconds !== undefined) setShowSeconds(data.show_seconds);
+        if (data.center_text) setCenterText(data.center_text);
+        if (data.center_text_size) setCenterTextSize(data.center_text_size);
+        if (data.center_text_color) setCenterTextColor(data.center_text_color);
+        if (data.center_text_font) setCenterTextFont(data.center_text_font);
+        if (data.center_vertical_position !== undefined) setCenterVerticalPosition(data.center_vertical_position);
+        if (data.center_logo) setCurrentLogoUrl(data.center_logo);
+        if (data.center_logo_size) setCenterLogoSize(data.center_logo_size);
       } catch (error) {
         console.error('Error loading settings:', error);
       }
@@ -268,31 +287,68 @@ const ZipcodeForm = () => {
       return;
     }
 
-    const data = {
-      language,
-      time_format: timeFormat,
-      show_seconds: showSeconds
-    };
+    // Use FormData for file upload support
+    const formData = new FormData();
+    formData.append('language', language);
+    formData.append('time_format', timeFormat);
+    formData.append('show_seconds', showSeconds);
+    formData.append('center_text', centerText);
+    formData.append('center_text_size', centerTextSize);
+    formData.append('center_text_color', centerTextColor);
+    formData.append('center_text_font', centerTextFont);
+    formData.append('center_vertical_position', centerVerticalPosition);
+    formData.append('center_logo_size', centerLogoSize);
 
     // Include location data if coordinates are available
     if (lat && lon) {
-      data.zip_code = zipCode;
-      data.country = country;
-      data.latitude = parseFloat(lat);
-      data.longitude = parseFloat(lon);
+      formData.append('zip_code', zipCode);
+      formData.append('country', country);
+      formData.append('latitude', parseFloat(lat));
+      formData.append('longitude', parseFloat(lon));
+    }
+
+    // Include logo if uploaded
+    if (centerLogo) {
+      formData.append('center_logo', centerLogo);
+    }
+
+    // Flag to remove logo
+    if (removeLogo) {
+      formData.append('remove_logo', 'true');
     }
 
     try {
       setSuccessMessage('Saving settings...');
-      
-      await api.patch('/shul/', data);
-      
-      setSuccessMessage('✓ Location found and settings saved successfully!');
+
+      // Use fetch directly for FormData upload
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/shul/`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Token ${token}`,
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save settings');
+      }
+
+      setSuccessMessage('✓ Settings saved successfully!');
+
+      // Clear the remove flag and logo state if logo was removed
+      if (removeLogo) {
+        setCurrentLogoUrl('');
+        setRemoveLogo(false);
+      }
+
+      // Clear the temporary logo file selection
+      setCenterLogo(null);
+
       setTimeout(() => setSuccessMessage(''), 3000);
-      
+
     } catch (error) {
       console.error('Error saving settings:', error);
-      setSuccessMessage('Location found but failed to save settings. Please try again.');
+      setSuccessMessage('Failed to save settings. Please try again.');
     }
   };
 
@@ -359,31 +415,31 @@ const ZipcodeForm = () => {
 
           <div style={styles.formGroup}>
             <label style={styles.label}>Country</label>
-            <select 
-              value={country} 
+            <select
+              value={country}
               onChange={e => setCountry(e.target.value)}
               style={styles.select}
             >
-              <option value="USA">🇺🇸 United States</option>
-              <option value="ISR">🇮🇱 Israel</option>
-              <option value="CAN">🇨🇦 Canada</option>
-              <option value="GBR">🇬🇧 United Kingdom</option>
-              <option value="AUS">🇦🇺 Australia</option>
-              <option value="ZAF">🇿🇦 South Africa</option>
-              <option value="FRA">🇫🇷 France</option>
-              <option value="BRA">🇧🇷 Brazil</option>
-              <option value="ARG">🇦🇷 Argentina</option>
-              <option value="RUS">🇷🇺 Russia</option>
-              <option value="MEX">🇲🇽 Mexico</option>
-              <option value="GER">🇩🇪 Germany</option>
-              <option value="NLD">🇳🇱 Netherlands</option>
-              <option value="BEL">🇧🇪 Belgium</option>
-              <option value="ESP">🇪🇸 Spain</option>
-              <option value="ITA">🇮🇹 Italy</option>
-              <option value="CHL">🇨🇱 Chile</option>
-              <option value="UKR">🇺🇦 Ukraine</option>
-              <option value="HUN">🇭🇺 Hungary</option>
-              <option value="AUT">🇦🇹 Austria</option>
+              <option value="USA">United States</option>
+              <option value="ISR">Israel</option>
+              <option value="CAN">Canada</option>
+              <option value="GBR">United Kingdom</option>
+              <option value="AUS">Australia</option>
+              <option value="ZAF">South Africa</option>
+              <option value="FRA">France</option>
+              <option value="BRA">Brazil</option>
+              <option value="ARG">Argentina</option>
+              <option value="RUS">Russia</option>
+              <option value="MEX">Mexico</option>
+              <option value="GER">Germany</option>
+              <option value="NLD">Netherlands</option>
+              <option value="BEL">Belgium</option>
+              <option value="ESP">Spain</option>
+              <option value="ITA">Italy</option>
+              <option value="CHL">Chile</option>
+              <option value="UKR">Ukraine</option>
+              <option value="HUN">Hungary</option>
+              <option value="AUT">Austria</option>
             </select>
           </div>
 
@@ -464,7 +520,186 @@ const ZipcodeForm = () => {
           </div>
         </div>
 
-        <button 
+        <div style={styles.section}>
+          <h2 style={styles.sectionTitle}>🖼️ Center Display Customization</h2>
+          <p style={styles.helpText}>Choose to display either a logo or text in the center of your display screen</p>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Center Text</label>
+            <input
+              type="text"
+              value={centerText}
+              onChange={e => setCenterText(e.target.value)}
+              placeholder="Enter text to display (e.g., Shul Name)"
+              style={styles.input}
+              maxLength={500}
+            />
+            <div style={styles.helpText}>Text will be displayed in the center area of the display screen</div>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Text Size</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <input
+                type="range"
+                min="24"
+                max="96"
+                value={centerTextSize}
+                onChange={e => setCenterTextSize(parseInt(e.target.value))}
+                style={{ flex: 1 }}
+              />
+              <div style={{
+                minWidth: '80px',
+                padding: '0.5rem 1rem',
+                backgroundColor: '#f3f4f6',
+                borderRadius: '6px',
+                textAlign: 'center',
+                fontWeight: '600',
+                color: '#374151'
+              }}>
+                {centerTextSize}px
+              </div>
+            </div>
+            <div style={styles.helpText}>Adjust the font size for the center text (24px - 96px)</div>
+          </div>
+
+          <div style={styles.gridTwo}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Text Color</label>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={centerTextColor}
+                  onChange={e => setCenterTextColor(e.target.value)}
+                  style={{ width: '60px', height: '40px', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer' }}
+                />
+                <input
+                  type="text"
+                  value={centerTextColor}
+                  onChange={e => setCenterTextColor(e.target.value)}
+                  placeholder="#ffc764"
+                  style={{ ...styles.input, flex: 1 }}
+                  maxLength={7}
+                />
+              </div>
+              <div style={styles.helpText}>Choose the text color</div>
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Font Style</label>
+              <select
+                value={centerTextFont}
+                onChange={e => setCenterTextFont(e.target.value)}
+                style={styles.select}
+              >
+                <option value="Arial">Arial</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Trebuchet MS">Trebuchet MS</option>
+                <option value="Impact">Impact</option>
+                <option value="Comic Sans MS">Comic Sans MS</option>
+                <option value="Palatino">Palatino</option>
+                <option value="Garamond">Garamond</option>
+                <option value="Bookman">Bookman</option>
+                <option value="Helvetica">Helvetica</option>
+              </select>
+              <div style={styles.helpText}>Choose the font style</div>
+            </div>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Vertical Position</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <span style={{ minWidth: '60px', fontSize: '0.9rem', color: '#6b7280' }}>Top</span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={centerVerticalPosition}
+                onChange={e => setCenterVerticalPosition(parseInt(e.target.value))}
+                style={{ flex: 1 }}
+              />
+              <span style={{ minWidth: '60px', fontSize: '0.9rem', color: '#6b7280', textAlign: 'right' }}>Bottom</span>
+            </div>
+            <div style={styles.helpText}>Adjust the vertical position of the text/logo on the page</div>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Logo Size</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <input
+                type="range"
+                min="100"
+                max="600"
+                value={centerLogoSize}
+                onChange={e => setCenterLogoSize(parseInt(e.target.value))}
+                style={{ flex: 1 }}
+              />
+              <div style={{
+                minWidth: '80px',
+                padding: '0.5rem 1rem',
+                backgroundColor: '#f3f4f6',
+                borderRadius: '6px',
+                textAlign: 'center',
+                fontWeight: '600',
+                color: '#374151'
+              }}>
+                {centerLogoSize}px
+              </div>
+            </div>
+            <div style={styles.helpText}>Adjust the maximum height for the logo (100px - 600px)</div>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Center Logo</label>
+            {currentLogoUrl && !centerLogo && !removeLogo && (
+              <div style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: '#f3f4f6', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <p style={{ fontSize: '0.9rem', color: '#374151', margin: 0 }}>Current Logo:</p>
+                  <button
+                    type="button"
+                    onClick={() => setRemoveLogo(true)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#ef4444',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '0.85rem',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={e => e.target.style.backgroundColor = '#dc2626'}
+                    onMouseOut={e => e.target.style.backgroundColor = '#ef4444'}
+                  >
+                    Remove Logo
+                  </button>
+                </div>
+                <img src={currentLogoUrl} alt="Current logo" style={{ maxHeight: '100px', maxWidth: '200px', objectFit: 'contain' }} />
+              </div>
+            )}
+            {removeLogo && (
+              <div style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#991b1b' }}>
+                Logo will be removed when you save settings
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => {
+                setCenterLogo(e.target.files[0]);
+                setRemoveLogo(false); // Cancel remove if uploading new logo
+              }}
+              style={styles.input}
+            />
+            <div style={styles.helpText}>Upload a logo image to display instead of text. Recommended size: 400x400px</div>
+          </div>
+        </div>
+
+        <button
           type="submit"
           disabled={isSaving}
           style={{

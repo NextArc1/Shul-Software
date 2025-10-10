@@ -52,6 +52,15 @@ class Shul(models.Model):
     email = models.EmailField(blank=True)
     website = models.URLField(blank=True)
 
+    # Display customization
+    center_logo = models.ImageField(upload_to='shul_logos/', blank=True, null=True)
+    center_logo_size = models.IntegerField(default=400, help_text='Logo max height in pixels (100-600)')
+    center_text = models.CharField(max_length=500, blank=True)
+    center_text_size = models.IntegerField(default=48, help_text='Font size in pixels (24-96)')
+    center_text_color = models.CharField(max_length=7, default='#ffc764', help_text='Hex color code')
+    center_text_font = models.CharField(max_length=100, default='Arial', help_text='Font family name')
+    center_vertical_position = models.IntegerField(default=50, help_text='Vertical position percentage (0=top, 50=center, 100=bottom)')
+
     # Status
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -247,14 +256,17 @@ class CustomTime(models.Model):
     shul = models.ForeignKey('Shul', on_delete=models.CASCADE, related_name='custom_times', null=True, blank=True)
     internal_name = models.CharField(max_length=100)
     display_name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, help_text='Optional notes/description for this custom time')
     time_type = models.CharField(max_length=10, choices=TIME_TYPE_CHOICES)
     base_time = models.CharField(max_length=100, null=True, blank=True)
     offset_minutes = models.IntegerField(default=0)
     fixed_time = models.TimeField(null=True, blank=True)
     daily = models.BooleanField(default=False)
+    days_of_week = models.JSONField(default=list, blank=True, help_text='List of days (0=Sunday, 6=Saturday)')
+    # Legacy field - kept for backwards compatibility
     day_of_week = models.IntegerField(choices=DAY_OF_WEEK_CHOICES, null=True, blank=True)
     calculated_time = models.DateTimeField(null=True, blank=True)
-    
+
     class Meta:
         unique_together = ['shul', 'internal_name']
 
@@ -262,25 +274,35 @@ class CustomTime(models.Model):
         return f"{self.shul.name} - {self.display_name}"
 
     def calculate_time(self, target_date=None):
-        from datetime import datetime, timedelta, date
+        from datetime import datetime, timedelta, date, time as dt_time
         import logging
 
         logger = logging.getLogger(__name__)
 
+        if target_date is None:
+            target_date = date.today()
+
         if self.daily:
-            if target_date is None:
-                target_date = date.today()
+            # Daily - applies to all days
+            pass
         else:
-            if self.day_of_week is not None:
-                day_of_week = int(self.day_of_week)
-                if target_date is None:
-                    target_date = date.today()
-                days_ahead = (day_of_week - target_date.weekday() + 7) % 7
-                if days_ahead == 0:
-                    days_ahead = 7
-                target_date = target_date + timedelta(days=days_ahead)
-            else:
-                logger.info(f"Custom time '{self.display_name}' has no day_of_week and is not daily.")
+            # Check if this custom time applies to the target date
+            # Convert Python weekday (0=Monday) to our model format (0=Sunday)
+            target_day_of_week = (target_date.weekday() + 1) % 7
+
+            # Support both new (days_of_week list) and legacy (day_of_week single int)
+            applicable_days = self.days_of_week if self.days_of_week else []
+            if not applicable_days and self.day_of_week is not None:
+                # Legacy: single day_of_week
+                applicable_days = [self.day_of_week]
+
+            if not applicable_days:
+                logger.info(f"Custom time '{self.display_name}' has no applicable days and is not daily.")
+                return None
+
+            if target_day_of_week not in applicable_days:
+                # This custom time doesn't apply to this day
+                logger.info(f"Custom time '{self.display_name}' does not apply on day {target_day_of_week} (target: {target_date})")
                 return None
 
         logger.info(f"Calculating custom time '{self.display_name}' for target date {target_date}")
@@ -309,10 +331,10 @@ class CustomTime(models.Model):
                     return None
 
                 # Handle different field types
-                if isinstance(base_time_value, datetime.time):
+                if isinstance(base_time_value, dt_time):
                     # It's a TimeField - combine with target date
                     base_datetime = datetime.combine(target_date, base_time_value)
-                elif isinstance(base_time_value, datetime.datetime):
+                elif isinstance(base_time_value, datetime):
                     # It's already a datetime (molad, kiddush levana fields)
                     base_datetime = base_time_value
                 else:
