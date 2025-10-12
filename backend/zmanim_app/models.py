@@ -61,6 +61,53 @@ class Shul(models.Model):
     center_text_font = models.CharField(max_length=100, default='Arial', help_text='Font family name')
     center_vertical_position = models.IntegerField(default=50, help_text='Vertical position percentage (0=top, 50=center, 100=bottom)')
 
+    # Box 1 (Shabbos Times) styling
+    box1_title_font = models.CharField(max_length=100, default='Arial', blank=True, help_text='Font for Box 1 title')
+    box1_title_color = models.CharField(max_length=7, default='#ffc764', blank=True, help_text='Color for Box 1 title')
+    box1_text_font = models.CharField(max_length=100, default='Arial', blank=True, help_text='Font for Box 1 text')
+    box1_text_color = models.CharField(max_length=7, default='#ffc764', blank=True, help_text='Color for Box 1 text')
+    box1_text_size = models.IntegerField(default=22, blank=True, help_text='Font size for Box 1 text in pixels')
+
+    # Box 2 (Weekday Times) styling
+    box2_title_font = models.CharField(max_length=100, default='Arial', blank=True, help_text='Font for Box 2 title')
+    box2_title_color = models.CharField(max_length=7, default='#ffc764', blank=True, help_text='Color for Box 2 title')
+    box2_text_font = models.CharField(max_length=100, default='Arial', blank=True, help_text='Font for Box 2 text')
+    box2_text_color = models.CharField(max_length=7, default='#ffc764', blank=True, help_text='Color for Box 2 text')
+    box2_text_size = models.IntegerField(default=22, blank=True, help_text='Font size for Box 2 text in pixels')
+
+    # Box 3 (Bottom-left) styling
+    box3_text_font = models.CharField(max_length=100, default='Arial', blank=True, help_text='Font for Box 3 text')
+    box3_text_color = models.CharField(max_length=7, default='#ffc764', blank=True, help_text='Color for Box 3 text')
+    box3_text_size = models.IntegerField(default=18, blank=True, help_text='Font size for Box 3 text in pixels')
+
+    # Box 4 (Bottom-right) styling
+    box4_text_font = models.CharField(max_length=100, default='Arial', blank=True, help_text='Font for Box 4 text')
+    box4_text_color = models.CharField(max_length=7, default='#ffc764', blank=True, help_text='Color for Box 4 text')
+    box4_text_size = models.IntegerField(default=18, blank=True, help_text='Font size for Box 4 text in pixels')
+
+    # Uniform outline color for all boxes (4 main + 2 center)
+    boxes_outline_color = models.CharField(max_length=7, default='#d4af37', blank=True, help_text='Outline color for all 6 boxes')
+    # Uniform background color for all boxes (transparent by default)
+    boxes_background_color = models.CharField(max_length=7, default='', blank=True, help_text='Background color for all 6 boxes (leave empty for transparent)')
+
+    # Header styling
+    header_text_color = models.CharField(max_length=7, default='#ffc764', blank=True, help_text='Text color for header')
+    header_bg_color = models.CharField(max_length=7, default='#162A45', blank=True, help_text='Background color for header')
+
+    # Background customization
+    BACKGROUND_TYPE_CHOICES = [
+        ('default', 'Default Background'),
+        ('color', 'Solid Color'),
+        ('image', 'Custom Image'),
+    ]
+    background_type = models.CharField(max_length=10, choices=BACKGROUND_TYPE_CHOICES, default='default', help_text='Type of background')
+    background_color = models.CharField(max_length=7, default='#000000', blank=True, help_text='Background color for solid color option')
+    background_image = models.ImageField(upload_to='backgrounds/', blank=True, null=True, help_text='Custom background image')
+
+    # Memorial boxes (editable only by master admin)
+    ilui_nishmat = models.JSONField(default=list, blank=True, help_text='List of names for Ilui Nishmat (In Memory Of)')
+    refuah_shleima = models.JSONField(default=list, blank=True, help_text='List of names for Refuah Shleima (Complete Healing)')
+
     # Status
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -352,3 +399,53 @@ class CustomTime(models.Model):
         else:
             logger.error(f"Unknown time_type '{self.time_type}' for custom time '{self.display_name}'")
             return None
+
+
+class CustomText(models.Model):
+    """Custom text fields and dividers specific to each shul"""
+    TEXT_TYPE_CHOICES = [
+        ('text', 'Text'),
+        ('divider', 'Divider'),
+    ]
+
+    shul = models.ForeignKey('Shul', on_delete=models.CASCADE, related_name='custom_texts', null=True, blank=True)
+    internal_name = models.CharField(max_length=100, help_text='Unique identifier (lowercase, no spaces)')
+    display_name = models.CharField(max_length=100, help_text='Label that appears on display')
+    text_type = models.CharField(max_length=10, choices=TEXT_TYPE_CHOICES, default='text')
+    text_content = models.TextField(blank=True, help_text='The text content to display (not needed for dividers)')
+    font_size = models.IntegerField(null=True, blank=True, help_text='Font size in pixels (leave empty to inherit from box)')
+    font_color = models.CharField(max_length=7, blank=True, help_text='Hex color code (e.g., #ffffff)')
+    description = models.TextField(blank=True, help_text='Optional notes/description')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['shul', 'internal_name']
+        verbose_name = 'Custom Text'
+        verbose_name_plural = 'Custom Texts'
+        ordering = ['display_name']
+
+    def __str__(self):
+        return f"{self.shul.name} - {self.display_name} ({self.get_text_type_display()})"
+
+
+class GlobalMemorialBoxes(models.Model):
+    """Global memorial boxes that apply to all shuls (singleton)"""
+    ilui_nishmat = models.JSONField(default=list, blank=True, help_text='List of names for Ilui Nishmat (In Memory Of)')
+    refuah_shleima = models.JSONField(default=list, blank=True, help_text='List of names for Refuah Shleima (Complete Healing)')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Global Memorial Boxes'
+        verbose_name_plural = 'Global Memorial Boxes'
+
+    def __str__(self):
+        return "Global Memorial Boxes"
+
+    @classmethod
+    def get_instance(cls):
+        """Get or create the singleton instance"""
+        instance, created = cls.objects.get_or_create(pk=1)
+        return instance

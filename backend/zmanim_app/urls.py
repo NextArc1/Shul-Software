@@ -21,7 +21,16 @@ urlpatterns = [
     # Custom times (admin)
     path('custom-times/', views.CustomTimeListCreateView.as_view(), name='custom_times'),
     path('custom-times/<int:pk>/', views.CustomTimeDetailView.as_view(), name='custom_time_detail'),
-    
+
+    # Custom texts (admin)
+    path('custom-texts/', views.CustomTextListCreateView.as_view(), name='custom_texts'),
+    path('custom-texts/<int:pk>/', views.CustomTextDetailView.as_view(), name='custom_text_detail'),
+
+    # Master admin endpoints (staff/superuser only)
+    path('master-admin/shuls/', views.master_admin_list_shuls, name='master_admin_list_shuls'),
+    path('master-admin/shuls/<int:shul_id>/', views.master_admin_shul_detail, name='master_admin_shul_detail'),
+    path('master-admin/memorial-boxes/', views.global_memorial_boxes, name='global_memorial_boxes'),
+
     # Public display API (no authentication required)
     path('display/<slug:shul_slug>/', views.shul_display_data, name='shul_display_data'),
 ]

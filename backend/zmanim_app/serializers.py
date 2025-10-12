@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Shul, CustomTime, DailyZmanim, ShulDisplayLayout
+from .models import Shul, CustomTime, CustomText, DailyZmanim, ShulDisplayLayout, GlobalMemorialBoxes
 
 User = get_user_model()
 
@@ -132,6 +132,73 @@ class CustomTimeSerializer(serializers.ModelSerializer):
         return data
 
 
+class CustomTextSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomText
+        fields = '__all__'
+        read_only_fields = ('shul', 'created_at', 'updated_at')
+
+    def validate_internal_name(self, value):
+        """Validate internal name format"""
+        import re
+
+        # Check for spaces
+        if ' ' in value:
+            raise serializers.ValidationError('Internal name cannot contain spaces. Use underscores (_) instead.')
+
+        # Check for special characters (only allow letters, numbers, underscores, hyphens)
+        if not re.match(r'^[a-zA-Z0-9_-]+$', value):
+            raise serializers.ValidationError('Internal name can only contain letters, numbers, underscores, and hyphens.')
+
+        # Check length
+        if len(value) < 3:
+            raise serializers.ValidationError('Internal name must be at least 3 characters long.')
+
+        return value.lower()  # Convert to lowercase for consistency
+
+    def validate_font_color(self, value):
+        """Validate hex color format"""
+        import re
+        if value and not re.match(r'^#[0-9A-Fa-f]{6}$', value):
+            raise serializers.ValidationError('Font color must be a valid hex color code (e.g., #ffffff)')
+        return value
+
+    def validate(self, data):
+        # Validate that internal_name is unique for this shul
+        internal_name = data.get('internal_name')
+        shul = self.context.get('shul')  # Will be set in the view
+
+        if shul and internal_name:
+            # Check if another custom text with this internal_name exists
+            existing = CustomText.objects.filter(shul=shul, internal_name=internal_name)
+
+            # Exclude current instance if updating
+            if self.instance:
+                existing = existing.exclude(pk=self.instance.pk)
+
+            if existing.exists():
+                raise serializers.ValidationError({
+                    'internal_name': f'A custom text with internal name "{internal_name}" already exists for this shul.'
+                })
+
+        # Validate text type specific fields
+        text_type = data.get('text_type', 'text')
+
+        if text_type == 'text' and not data.get('text_content'):
+            raise serializers.ValidationError({
+                'text_content': 'Text content is required when type is "text".'
+            })
+
+        # Font size validation
+        font_size = data.get('font_size')
+        if font_size is not None and (font_size < 8 or font_size > 200):
+            raise serializers.ValidationError({
+                'font_size': 'Font size must be between 8 and 200 pixels.'
+            })
+
+        return data
+
+
 class RegistrationSerializer(serializers.Serializer):
     # User fields
     email = serializers.EmailField()
@@ -244,3 +311,12 @@ class ShulDisplayLayoutSerializer(serializers.ModelSerializer):
         model = ShulDisplayLayout
         fields = ('id', 'shul', 'layout_config', 'created_at', 'updated_at')
         read_only_fields = ('id', 'shul', 'created_at', 'updated_at')
+
+
+class GlobalMemorialBoxesSerializer(serializers.ModelSerializer):
+    """Serializer for GlobalMemorialBoxes model"""
+
+    class Meta:
+        model = GlobalMemorialBoxes
+        fields = ('id', 'ilui_nishmat', 'refuah_shleima', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')

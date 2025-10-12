@@ -3,16 +3,16 @@ import logging
 from django.contrib.auth import authenticate
 from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from decouple import config
 
-from .models import Shul, CustomTime, DailyZmanim
+from .models import Shul, CustomTime, CustomText, DailyZmanim, GlobalMemorialBoxes
 from .serializers import (
-    UserSerializer, ShulSerializer, CustomTimeSerializer,
-    RegistrationSerializer
+    UserSerializer, ShulSerializer, CustomTimeSerializer, CustomTextSerializer,
+    RegistrationSerializer, GlobalMemorialBoxesSerializer
 )
 from .get_daily_zmanim import get_daily_zmanim
 from .translations import (
@@ -124,6 +124,12 @@ class ShulDetailView(generics.RetrieveUpdateAPIView):
             shul = self.get_object()
             if shul.center_logo:
                 shul.center_logo.delete(save=True)
+
+        # Handle background removal if requested
+        if request.data.get('remove_background') == 'true':
+            shul = self.get_object()
+            if shul.background_image:
+                shul.background_image.delete(save=True)
 
         return super().update(request, *args, **kwargs)
 
@@ -487,6 +493,38 @@ class CustomTimeDetailView(generics.RetrieveUpdateDestroyAPIView):
         return context
 
 
+class CustomTextListCreateView(generics.ListCreateAPIView):
+    """List and create custom texts"""
+    serializer_class = CustomTextSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return CustomText.objects.filter(shul__admin=self.request.user)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['shul'] = self.request.user.shuls.first()
+        return context
+
+    def perform_create(self, serializer):
+        shul = self.request.user.shuls.first()
+        serializer.save(shul=shul)
+
+
+class CustomTextDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Get, update, or delete a custom text"""
+    serializer_class = CustomTextSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return CustomText.objects.filter(shul__admin=self.request.user)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['shul'] = self.request.user.shuls.first()
+        return context
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def refresh_zmanim(request):
@@ -657,6 +695,74 @@ def display_layout(request):
         return Response(serializer.data)
 
 
+# ========== MASTER ADMIN API (Staff/Superuser only) ==========
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def master_admin_list_shuls(request):
+    """Master admin: List all shuls"""
+    shuls = Shul.objects.all().order_by('-created_at')
+    serializer = ShulSerializer(shuls, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def master_admin_shul_detail(request, shul_id):
+    """Master admin: Get detailed information about a specific shul"""
+    try:
+        shul = Shul.objects.get(id=shul_id)
+    except Shul.DoesNotExist:
+        return Response({'error': 'Shul not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = ShulSerializer(shul)
+
+    # Add additional statistics
+    from datetime import date, timedelta
+    today = date.today()
+
+    stats = {
+        'total_zmanim_records': DailyZmanim.objects.filter(shul=shul).count(),
+        'zmanim_records_future': DailyZmanim.objects.filter(shul=shul, date__gte=today).count(),
+        'custom_times_count': CustomTime.objects.filter(shul=shul).count(),
+        'custom_texts_count': CustomText.objects.filter(shul=shul).count(),
+        'admin_email': shul.admin.email,
+        'admin_username': shul.admin.username,
+    }
+
+    return Response({
+        'shul': serializer.data,
+        'stats': stats
+    })
+
+
+@api_view(['GET', 'PATCH', 'PUT'])
+@permission_classes([IsAdminUser])
+def global_memorial_boxes(request):
+    """Master admin: Get or update global memorial boxes that apply to all shuls"""
+    memorial_boxes = GlobalMemorialBoxes.get_instance()
+
+    if request.method == 'GET':
+        serializer = GlobalMemorialBoxesSerializer(memorial_boxes)
+        return Response(serializer.data)
+
+    elif request.method in ['PATCH', 'PUT']:
+        # Update memorial boxes
+        if 'ilui_nishmat' in request.data:
+            memorial_boxes.ilui_nishmat = request.data['ilui_nishmat']
+
+        if 'refuah_shleima' in request.data:
+            memorial_boxes.refuah_shleima = request.data['refuah_shleima']
+
+        memorial_boxes.save()
+
+        serializer = GlobalMemorialBoxesSerializer(memorial_boxes)
+        return Response({
+            'message': 'Global memorial boxes updated successfully',
+            'data': serializer.data
+        })
+
+
 # PUBLIC SHUL DISPLAY API (No Authentication - for display screens)
 
 @api_view(['GET'])
@@ -788,6 +894,19 @@ def shul_display_data(request, shul_slug):
                 'is_daily': custom_time.daily
             })
 
+    # Get custom texts for this shul
+    custom_texts = CustomText.objects.filter(shul=shul)
+    custom_texts_data = []
+    for custom_text in custom_texts:
+        custom_texts_data.append({
+            'internal_name': custom_text.internal_name,
+            'display_name': custom_text.display_name,
+            'text_type': custom_text.text_type,
+            'text_content': custom_text.text_content,
+            'font_size': custom_text.font_size,
+            'font_color': custom_text.font_color
+        })
+
     # Create formatted Hebrew date
     formatted_hebrew_date = None
     if daily_zmanim.jewish_day and daily_zmanim.jewish_month_name and daily_zmanim.jewish_year:
@@ -827,6 +946,14 @@ def shul_display_data(request, shul_slug):
         else:
             translated_limudim[key] = value
 
+    # Get global memorial boxes (applies to all shuls)
+    global_memorial = GlobalMemorialBoxes.get_instance()
+
+    # Get layout configuration for this shul
+    from .models import ShulDisplayLayout
+    layout_obj, created = ShulDisplayLayout.objects.get_or_create(shul=shul)
+    layout_config = layout_obj.layout_config if layout_obj.layout_config else {}
+
     return Response({
         'shul': {
             'name': shul.name,
@@ -840,7 +967,36 @@ def shul_display_data(request, shul_slug):
             'center_text_size': shul.center_text_size,
             'center_text_color': shul.center_text_color,
             'center_text_font': shul.center_text_font,
-            'center_vertical_position': shul.center_vertical_position
+            'center_vertical_position': shul.center_vertical_position,
+            # Box styling fields
+            'box1_title_font': shul.box1_title_font,
+            'box1_title_color': shul.box1_title_color,
+            'box1_text_font': shul.box1_text_font,
+            'box1_text_color': shul.box1_text_color,
+            'box1_text_size': shul.box1_text_size,
+            'box2_title_font': shul.box2_title_font,
+            'box2_title_color': shul.box2_title_color,
+            'box2_text_font': shul.box2_text_font,
+            'box2_text_color': shul.box2_text_color,
+            'box2_text_size': shul.box2_text_size,
+            'box3_text_font': shul.box3_text_font,
+            'box3_text_color': shul.box3_text_color,
+            'box3_text_size': shul.box3_text_size,
+            'box4_text_font': shul.box4_text_font,
+            'box4_text_color': shul.box4_text_color,
+            'box4_text_size': shul.box4_text_size,
+            # Outline and header colors
+            'boxes_outline_color': shul.boxes_outline_color,
+            'boxes_background_color': shul.boxes_background_color,
+            'header_text_color': shul.header_text_color,
+            'header_bg_color': shul.header_bg_color,
+            # Background customization
+            'background_type': shul.background_type,
+            'background_color': shul.background_color,
+            'background_image': request.build_absolute_uri(shul.background_image.url) if shul.background_image else None,
+            # Global memorial boxes (shared across all shuls)
+            'ilui_nishmat': global_memorial.ilui_nishmat,
+            'refuah_shleima': global_memorial.refuah_shleima
         },
         'zmanim': zmanim_data,
         'limudim': translated_limudim,
@@ -850,6 +1006,8 @@ def shul_display_data(request, shul_slug):
         'calendar_display_names': calendar_display_names,
         'formatted_hebrew_date': formatted_hebrew_date,
         'custom_times': custom_times_data,
+        'custom_texts': custom_texts_data,
+        'layout': layout_config,
         'current_time': current_time.isoformat(),
         'last_updated': daily_zmanim.updated_at.isoformat() if daily_zmanim.updated_at else None
     })
