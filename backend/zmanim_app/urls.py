@@ -29,7 +29,19 @@ urlpatterns = [
     # Master admin endpoints (staff/superuser only)
     path('master-admin/shuls/', views.master_admin_list_shuls, name='master_admin_list_shuls'),
     path('master-admin/shuls/<int:shul_id>/', views.master_admin_shul_detail, name='master_admin_shul_detail'),
+    path('master-admin/shuls/<int:shul_id>/delete/', views.master_admin_delete_shul, name='master_admin_delete_shul'),
     path('master-admin/memorial-boxes/', views.global_memorial_boxes, name='global_memorial_boxes'),
+
+    # Master admin: Registration approval workflow
+    path('master-admin/registrations/', views.list_pending_registrations, name='list_pending_registrations'),
+    path('master-admin/registrations/<int:registration_id>/approve/', views.approve_registration, name='approve_registration'),
+    path('master-admin/registrations/<int:registration_id>/reject/', views.reject_registration, name='reject_registration'),
+    path('master-admin/registrations/<int:registration_id>/delete/', views.delete_registration_request, name='delete_registration_request'),
+
+    # Public registration endpoints (no authentication required)
+    path('registration/request/', views.submit_registration_request, name='submit_registration_request'),
+    path('registration/validate/<uuid:token>/', views.validate_registration_token, name='validate_registration_token'),
+    path('registration/complete/', views.complete_registration, name='complete_registration'),
 
     # Public display API (no authentication required)
     path('display/<slug:shul_slug>/', views.shul_display_data, name='shul_display_data'),

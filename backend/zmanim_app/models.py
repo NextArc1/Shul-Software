@@ -2,14 +2,18 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils.text import slugify
+import uuid
+from datetime import timedelta
+from django.utils import timezone
 
 
 class Shul(models.Model):
     """Represents a synagogue with all its settings"""
     LANGUAGE_CHOICES = [
-        ('s', 'Sephardic'),
-        ('a', 'Ashkenazic'),
         ('he', 'Hebrew'),
+        ('en', 'English'),
+        ('a', 'Ashkenazic'),
+        ('s', 'Sephardic'),
         ('de', 'German'),
         ('es', 'Spanish'),
         ('fr', 'French'),
@@ -108,10 +112,11 @@ class Shul(models.Model):
     ilui_nishmat = models.JSONField(default=list, blank=True, help_text='List of names for Ilui Nishmat (In Memory Of)')
     refuah_shleima = models.JSONField(default=list, blank=True, help_text='List of names for Refuah Shleima (Complete Healing)')
 
-    # Status
+    # Status and tracking
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
+    last_display_access = models.DateTimeField(null=True, blank=True, help_text='Last time the display page was accessed')
     
     class Meta:
         ordering = ['name']
@@ -449,3 +454,75 @@ class GlobalMemorialBoxes(models.Model):
         """Get or create the singleton instance"""
         instance, created = cls.objects.get_or_create(pk=1)
         return instance
+
+
+class PendingRegistration(models.Model):
+    """Pending registration requests that need admin approval"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    # Registration info
+    organization_name = models.CharField(max_length=200, help_text='Name of the shul/organization')
+    contact_name = models.CharField(max_length=200, help_text='Full name of contact person')
+    rabbi = models.CharField(max_length=200, blank=True, help_text='Name of the rabbi (optional)')
+    email = models.EmailField(help_text='Email address for account')
+    phone = models.CharField(max_length=20, help_text='Phone number')
+
+    # Address fields (separated)
+    street_address = models.CharField(max_length=300, default='', help_text='Street address')
+    city = models.CharField(max_length=100, default='', help_text='City')
+    state = models.CharField(max_length=100, default='', help_text='State/Province/Region')
+    zip_code = models.CharField(max_length=20, default='', help_text='Zip/Postal Code')
+    country = models.CharField(max_length=100, default='United States', help_text='Country')
+
+    # Legacy fields (kept for backwards compatibility)
+    address = models.TextField(blank=True, help_text='Full formatted address (auto-populated)')
+    location_description = models.CharField(max_length=200, blank=True, help_text='City, State/Country (auto-populated)')
+
+    purpose = models.TextField(help_text='Why they need this service')
+
+    # Status tracking
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
+    # Token for account creation
+    approval_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    token_used = models.BooleanField(default=False)
+    token_expires_at = models.DateTimeField(null=True, blank=True)
+
+    # Metadata
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='reviewed_registrations')
+    rejection_reason = models.TextField(blank=True, help_text='Reason for rejection (optional)')
+
+    class Meta:
+        ordering = ['-submitted_at']
+        verbose_name = 'Pending Registration'
+        verbose_name_plural = 'Pending Registrations'
+
+    def __str__(self):
+        return f"{self.organization_name} - {self.email} ({self.status})"
+
+    def save(self, *args, **kwargs):
+        # Auto-populate legacy fields from new address fields
+        if self.street_address or self.city or self.state:
+            self.address = f"{self.street_address}\n{self.city}, {self.state} {self.zip_code}\n{self.country}"
+            self.location_description = f"{self.city}, {self.state}, {self.country}"
+
+        # Set token expiration when approved (7 days from now)
+        if self.status == 'approved' and not self.token_expires_at:
+            self.token_expires_at = timezone.now() + timedelta(days=7)
+        super().save(*args, **kwargs)
+
+    def is_token_valid(self):
+        """Check if the approval token is still valid"""
+        if self.token_used:
+            return False
+        if self.status != 'approved':
+            return False
+        if self.token_expires_at and timezone.now() > self.token_expires_at:
+            return False
+        return True

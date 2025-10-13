@@ -1,17 +1,17 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Shul, CustomTime, CustomText, DailyZmanim, ShulDisplayLayout, GlobalMemorialBoxes
+from .models import Shul, CustomTime, CustomText, DailyZmanim, ShulDisplayLayout, GlobalMemorialBoxes, PendingRegistration
 
 User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
-    
+
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'password')
-        read_only_fields = ('id',)
+        fields = ('id', 'email', 'username', 'password', 'is_staff')
+        read_only_fields = ('id', 'is_staff')
     
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -23,11 +23,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ShulSerializer(serializers.ModelSerializer):
     admin_email = serializers.EmailField(source='admin.email', read_only=True)
+    admin_last_login = serializers.DateTimeField(source='admin.last_login', read_only=True)
 
     class Meta:
         model = Shul
         fields = '__all__'
-        read_only_fields = ('admin', 'slug', 'created_at', 'updated_at')
+        read_only_fields = ('admin', 'slug', 'created_at', 'updated_at', 'last_display_access')
     
     def update(self, instance, validated_data):
         # Check if coordinates are being updated
@@ -320,3 +321,160 @@ class GlobalMemorialBoxesSerializer(serializers.ModelSerializer):
         model = GlobalMemorialBoxes
         fields = ('id', 'ilui_nishmat', 'refuah_shleima', 'created_at', 'updated_at')
         read_only_fields = ('id', 'created_at', 'updated_at')
+
+
+class PendingRegistrationSerializer(serializers.ModelSerializer):
+    """Serializer for PendingRegistration requests"""
+    reviewed_by_name = serializers.CharField(source='reviewed_by.email', read_only=True)
+    is_token_valid = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PendingRegistration
+        fields = (
+            'id', 'organization_name', 'contact_name', 'rabbi', 'email', 'phone',
+            'street_address', 'city', 'state', 'zip_code', 'country',
+            'address', 'location_description', 'purpose', 'status',
+            'approval_token', 'token_used', 'token_expires_at',
+            'submitted_at', 'reviewed_at', 'reviewed_by', 'reviewed_by_name',
+            'rejection_reason', 'is_token_valid'
+        )
+        read_only_fields = (
+            'id', 'approval_token', 'token_used', 'token_expires_at',
+            'submitted_at', 'reviewed_at', 'reviewed_by', 'reviewed_by_name'
+        )
+
+    def get_is_token_valid(self, obj):
+        return obj.is_token_valid()
+
+
+class PendingRegistrationCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating registration requests (public)"""
+
+    class Meta:
+        model = PendingRegistration
+        fields = (
+            'organization_name', 'contact_name', 'rabbi', 'email', 'phone',
+            'street_address', 'city', 'state', 'zip_code', 'country', 'purpose'
+        )
+
+    def validate_email(self, value):
+        """Check if email is already registered or has a pending request"""
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("This email is already registered. Please login or use a different email.")
+
+        # Check for existing pending or approved requests with this email
+        existing = PendingRegistration.objects.filter(
+            email=value,
+            status__in=['pending', 'approved']
+        ).exists()
+
+        if existing:
+            raise serializers.ValidationError("A registration request with this email is already pending review.")
+
+        return value
+
+
+class CompleteRegistrationSerializer(serializers.Serializer):
+    """Serializer for completing registration with approval token"""
+    token = serializers.UUIDField()
+    password = serializers.CharField(min_length=8, write_only=True)
+    shul_name = serializers.CharField(max_length=200, required=False)
+    zip_code = serializers.CharField(max_length=10, required=False, allow_blank=True)
+    country = serializers.CharField(max_length=100, default='United States')
+
+    def validate_token(self, value):
+        """Validate that the token exists and is valid"""
+        try:
+            registration = PendingRegistration.objects.get(approval_token=value)
+        except PendingRegistration.DoesNotExist:
+            raise serializers.ValidationError("Invalid registration token.")
+
+        if not registration.is_token_valid():
+            if registration.token_used:
+                raise serializers.ValidationError("This registration link has already been used.")
+            elif registration.status != 'approved':
+                raise serializers.ValidationError("This registration has not been approved.")
+            else:
+                raise serializers.ValidationError("This registration link has expired.")
+
+        return value
+
+    def create(self, validated_data):
+        """Create user and shul from approved registration"""
+        token = validated_data['token']
+        password = validated_data['password']
+
+        # Get the pending registration
+        registration = PendingRegistration.objects.get(approval_token=token)
+
+        # Create user
+        user = User.objects.create_user(
+            username=registration.email,
+            email=registration.email
+        )
+        user.set_password(password)
+        user.save()
+
+        # Get location data if zip code provided
+        zip_code = validated_data.get('zip_code', '')
+        country = validated_data.get('country', 'United States')
+        latitude = 0.0
+        longitude = 0.0
+        timezone = 'America/New_York'
+
+        if zip_code:
+            try:
+                import requests
+                from decouple import config
+                api_key = config('OPENCAGE_API_KEY')
+                query = f"{zip_code}, {country}"
+                api_url = f"https://api.opencagedata.com/geocode/v1/json?q={query}&key={api_key}&limit=1"
+
+                response = requests.get(api_url)
+                data = response.json()
+
+                if data and data['results']:
+                    coordinates = data['results'][0]['geometry']
+                    latitude = coordinates['lat']
+                    longitude = coordinates['lng']
+
+                    # Get timezone
+                    from .views import fetch_timezone_by_coordinates
+                    timezone_result = fetch_timezone_by_coordinates(latitude, longitude)
+                    if timezone_result:
+                        timezone = timezone_result
+            except Exception as e:
+                print(f"Failed to get coordinates: {e}")
+
+        # Create shul using registration data
+        shul_name = validated_data.get('shul_name', registration.organization_name)
+        # Use the formatted address from registration (auto-generated in model)
+        full_address = registration.address if registration.address else f"{registration.street_address}, {registration.city}, {registration.state} {registration.zip_code}"
+
+        shul = Shul.objects.create(
+            admin=user,
+            name=shul_name,
+            zip_code=registration.zip_code or zip_code,
+            country=registration.country or country,
+            address=full_address,
+            email=registration.email,
+            phone=registration.phone,
+            latitude=latitude,
+            longitude=longitude,
+            timezone=timezone
+        )
+
+        # Auto-calculate 6 months of zmanim for new shul if coordinates exist
+        if latitude and longitude and latitude != 0.0 and longitude != 0.0:
+            from .zmanim_calculator import ZmanimCalculator
+            from datetime import date, timedelta
+
+            start_date = date.today()
+            end_date = start_date + timedelta(days=180)
+            ZmanimCalculator.calculate_date_range(shul, start_date, end_date)
+
+        # Mark token as used
+        registration.token_used = True
+        registration.save()
+
+        return {'user': user, 'shul': shul, 'registration': registration}

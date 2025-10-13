@@ -1,6 +1,7 @@
 import requests
 import logging
 from django.contrib.auth import authenticate
+from django.utils import timezone
 from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -9,10 +10,11 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from decouple import config
 
-from .models import Shul, CustomTime, CustomText, DailyZmanim, GlobalMemorialBoxes
+from .models import Shul, CustomTime, CustomText, DailyZmanim, GlobalMemorialBoxes, PendingRegistration
 from .serializers import (
     UserSerializer, ShulSerializer, CustomTimeSerializer, CustomTextSerializer,
-    RegistrationSerializer, GlobalMemorialBoxesSerializer
+    RegistrationSerializer, GlobalMemorialBoxesSerializer,
+    PendingRegistrationSerializer, PendingRegistrationCreateSerializer, CompleteRegistrationSerializer
 )
 from .get_daily_zmanim import get_daily_zmanim
 from .translations import (
@@ -763,6 +765,47 @@ def global_memorial_boxes(request):
         })
 
 
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def master_admin_delete_shul(request, shul_id):
+    """Master admin: Delete a shul and its associated user account"""
+    try:
+        shul = Shul.objects.get(id=shul_id)
+    except Shul.DoesNotExist:
+        return Response({'error': 'Shul not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Get the admin user before deleting the shul
+    admin_user = shul.admin
+    shul_name = shul.name
+    admin_email = admin_user.email
+
+    # Delete uploaded files (center_logo, background_image) from disk
+    if shul.center_logo:
+        shul.center_logo.delete(save=False)
+    if shul.background_image:
+        shul.background_image.delete(save=False)
+
+    # Delete the shul (this will CASCADE delete):
+    # - DailyZmanim records
+    # - ShulDisplayLayout
+    # - CustomTime records
+    # - CustomText records
+    shul.delete()
+
+    # Delete the admin user's auth token (if exists)
+    try:
+        admin_user.auth_token.delete()
+    except:
+        pass
+
+    # Delete the admin user account
+    admin_user.delete()
+
+    return Response({
+        'message': f'Successfully deleted shul "{shul_name}" and user account "{admin_email}"'
+    }, status=status.HTTP_200_OK)
+
+
 # PUBLIC SHUL DISPLAY API (No Authentication - for display screens)
 
 @api_view(['GET'])
@@ -773,6 +816,11 @@ def shul_display_data(request, shul_slug):
         shul = Shul.objects.get(slug=shul_slug, is_active=True)
     except Shul.DoesNotExist:
         return Response({'error': 'Shul not found or inactive'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Track display access (use timezone-aware UTC time)
+    from django.utils import timezone
+    shul.last_display_access = timezone.now()
+    shul.save(update_fields=['last_display_access'])
 
     # Get current time in the shul's timezone
     import pytz
@@ -1011,3 +1059,332 @@ def shul_display_data(request, shul_slug):
         'current_time': current_time.isoformat(),
         'last_updated': daily_zmanim.updated_at.isoformat() if daily_zmanim.updated_at else None
     })
+
+
+# ========== REGISTRATION APPROVAL WORKFLOW API ==========
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def submit_registration_request(request):
+    """Public endpoint: Submit a new registration request"""
+    serializer = PendingRegistrationCreateSerializer(data=request.data)
+    if serializer.is_valid():
+        registration = serializer.save()
+
+        # Send confirmation email immediately
+        from django.core.mail import send_mail
+        from django.conf import settings
+
+        subject = 'Registration Request Received - Shul Schedule'
+        message = f"""Hello {registration.contact_name},
+
+Thank you for your interest in Shul Schedule!
+
+We have received your registration request for {registration.organization_name} and are currently reviewing it. We carefully review each application to ensure the quality of our service.
+
+What happens next?
+• We will review your request within 1-2 business days
+• If approved, you'll receive an email with a link to complete your account setup
+• Once your account is created, you can immediately start using the scheduling software
+
+Best regards,
+Shua P
+Shul Schedule
+
+---
+Request Details:
+Organization: {registration.organization_name}
+Contact: {registration.contact_name}
+Email: {registration.email}
+"""
+
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [registration.email],
+                fail_silently=True,  # Don't fail registration if email fails
+            )
+            logger.info(f"Confirmation email sent successfully to {registration.email}")
+        except Exception as e:
+            logger.error(f"Failed to send confirmation email: {e}")
+
+        return Response({
+            'message': 'Registration request submitted successfully! We will review it and send you an email shortly.',
+            'registration_id': registration.id
+        }, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def list_pending_registrations(request):
+    """Master admin: List all pending registration requests"""
+    status_filter = request.query_params.get('status', 'pending')
+
+    if status_filter == 'all':
+        registrations = PendingRegistration.objects.all()
+    else:
+        registrations = PendingRegistration.objects.filter(status=status_filter)
+
+    serializer = PendingRegistrationSerializer(registrations, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def approve_registration(request, registration_id):
+    """Master admin: Approve a registration request and send invitation email"""
+    try:
+        registration = PendingRegistration.objects.get(id=registration_id)
+    except PendingRegistration.DoesNotExist:
+        return Response({'error': 'Registration not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if registration.status != 'pending':
+        return Response({'error': 'Registration has already been reviewed'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Update status
+    registration.status = 'approved'
+    registration.reviewed_at = timezone.now()
+    registration.reviewed_by = request.user
+    # Set token expiration to 7 days from now
+    registration.token_expires_at = timezone.now() + timedelta(days=7)
+    registration.save()
+
+    # Send approval email
+    from django.core.mail import send_mail
+    from django.conf import settings
+
+    registration_url = f"{settings.SITE_URL}/register/complete/{registration.approval_token}"
+
+    subject = 'Shul Schedule Registration - Next Steps'
+
+    # Formal tone with setup link
+    message = f"""Hello {registration.contact_name},
+
+Thank you for your interest in Shul Schedule. Your registration request for
+  {registration.organization_name} has been approved.
+
+  To complete your account setup, please visit:
+  {registration_url}
+
+  This setup link will expire in 7 days. Once you complete the setup, you will be able to:
+
+  • Customize your display settings and appearance
+  • Set your location for accurate zmanim calculations
+  • Add custom times and announcements
+  • Access your unique display URL
+To complete your account setup, please visit:
+{registration_url}
+
+This link will expire in 7 days.
+
+Best regards,
+Shua P
+Shul Schedule
+
+---
+Organization: {registration.organization_name}
+Contact: {registration.contact_name}
+Email: {registration.email}
+"""
+
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [registration.email],
+            fail_silently=False,
+        )
+
+        logger.info(f"Approval email sent successfully to {registration.email}")
+
+        return Response({
+            'message': 'Registration approved and email sent successfully',
+            'registration': PendingRegistrationSerializer(registration).data
+        })
+    except Exception as e:
+        logger.error(f"Failed to send approval email: {e}")
+        return Response({
+            'message': 'Registration approved but email failed to send',
+            'error': str(e),
+            'registration': PendingRegistrationSerializer(registration).data
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def reject_registration(request, registration_id):
+    """Master admin: Reject a registration request"""
+    try:
+        registration = PendingRegistration.objects.get(id=registration_id)
+    except PendingRegistration.DoesNotExist:
+        return Response({'error': 'Registration not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if registration.status != 'pending':
+        return Response({'error': 'Registration has already been reviewed'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Update status
+    registration.status = 'rejected'
+    registration.reviewed_at = timezone.now()
+    registration.reviewed_by = request.user
+    registration.rejection_reason = request.data.get('rejection_reason', '')
+    registration.save()
+
+    # Optionally send rejection email
+    send_email = request.data.get('send_email', False)
+    if send_email:
+        from django.core.mail import send_mail
+        from django.conf import settings
+
+        rejection_reason = registration.rejection_reason or 'No specific reason provided.'
+
+        subject = 'Regarding Your Shul Schedule Registration'
+        message = f"""Hello {registration.contact_name},
+
+Thank you for your interest in Shul Schedule. Unfortunately, we are unable to approve your registration request at this time.
+
+Reason: {rejection_reason}
+
+Best regards,
+Shua P
+Shul Schedule
+"""
+
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [registration.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.error(f"Failed to send rejection email: {e}")
+
+    return Response({
+        'message': 'Registration rejected successfully',
+        'registration': PendingRegistrationSerializer(registration).data
+    })
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def delete_registration_request(request, registration_id):
+    """Master admin: Delete a registration request (for spam/duplicates)"""
+    try:
+        registration = PendingRegistration.objects.get(id=registration_id)
+        registration.delete()
+        return Response({'message': 'Registration request deleted successfully'})
+    except PendingRegistration.DoesNotExist:
+        return Response({'error': 'Registration not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def validate_registration_token(request, token):
+    """Public endpoint: Validate a registration token"""
+    try:
+        registration = PendingRegistration.objects.get(approval_token=token)
+
+        if not registration.is_token_valid():
+            if registration.token_used:
+                return Response({
+                    'valid': False,
+                    'error': 'This registration link has already been used.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            elif registration.status != 'approved':
+                return Response({
+                    'valid': False,
+                    'error': 'This registration has not been approved.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({
+                    'valid': False,
+                    'error': 'This registration link has expired.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'valid': True,
+            'organization_name': registration.organization_name,
+            'contact_name': registration.contact_name,
+            'email': registration.email
+        })
+    except PendingRegistration.DoesNotExist:
+        return Response({
+            'valid': False,
+            'error': 'Invalid registration token.'
+        }, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def complete_registration(request):
+    """Public endpoint: Complete registration with approved token"""
+    serializer = CompleteRegistrationSerializer(data=request.data)
+    if serializer.is_valid():
+        result = serializer.save()
+        user = result['user']
+        shul = result['shul']
+
+        # Create auth token
+        token, created = Token.objects.get_or_create(user=user)
+
+        # Send welcome email
+        from django.core.mail import send_mail
+        from django.conf import settings
+
+        display_url = f"{settings.SITE_URL}/display/{shul.slug}"
+        dashboard_url = f"{settings.SITE_URL}/setup"
+
+        subject = 'Welcome to Shul Schedule!'
+        message = f"""Hello {user.email},
+
+Welcome to Shul Schedule! Your account has been successfully created.
+
+Your display is now live and ready to customize:
+🔗 Display URL: {display_url}
+
+Next Steps:
+1. Complete your setup in the dashboard: {dashboard_url}
+2. Set your location (zip code) for accurate zmanim
+3. Customize your display appearance
+4. Add custom times and texts if needed
+
+Getting Started Tips:
+• We recommend using a PC with a screen or monitor for optimal viewing
+• All zmanim are calculated automatically based on your location
+• You can customize colors, fonts, and layout in the Settings
+
+Best regards,
+Shua P
+Shul Schedule
+
+---
+Account Details:
+Organization: {shul.name}
+Email: {user.email}
+Display URL: {display_url}
+"""
+
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=True,  # Don't fail account creation if email fails
+            )
+        except Exception as e:
+            logger.error(f"Failed to send welcome email: {e}")
+
+        return Response({
+            'message': 'Account created successfully!',
+            'token': token.key,
+            'user': UserSerializer(user).data,
+            'shul': ShulSerializer(shul).data
+        }, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

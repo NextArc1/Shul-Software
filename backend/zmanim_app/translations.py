@@ -10,7 +10,7 @@ Supports multiple languages for international Jewish communities.
 ZMANIM_TRANSLATIONS = {
     # Basic Zmanim (14 terms)
     'Alos HaShachar': {
-        'en': 'Alos HaShachar',
+        'en': 'Dawn',
         'he': 'עלות השחר',
         's': 'Alot HaShachar',  # Sephardic pronunciation
         'a': 'Alos HaShachar',  # Ashkenazic pronunciation
@@ -18,7 +18,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'עלות השחר',
     },
     'Neitz HaChamah': {
-        'en': 'Neitz HaChamah',
+        'en': 'Sunrise',
         'he': 'נץ החמה',
         's': 'Netz HaChama',  # Sephardic pronunciation
         'a': 'Neitz HaChamah',  # Ashkenazic pronunciation
@@ -26,7 +26,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'נץ החמה',
     },
     'Chatzos': {
-        'en': 'Chatzos',
+        'en': 'Midday',
         'he': 'חצות',
         's': 'Chatzot',  # Sephardic pronunciation
         'a': 'Chatzos',  # Ashkenazic pronunciation
@@ -34,7 +34,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'חצות',
     },
     'Mincha Gedola': {
-        'en': 'Mincha Gedola',
+        'en': 'Earliest Mincha',
         'he': 'מנחה גדולה',
         's': 'Mincha Gedola',  # Sephardic pronunciation
         'a': 'Mincha Gedolah',  # Ashkenazic pronunciation
@@ -42,7 +42,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'מנחה גדולה',
     },
     'Mincha Ketana': {
-        'en': 'Mincha Ketana',
+        'en': 'Preferred Mincha',
         'he': 'מנחה קטנה',
         's': 'Mincha Ketana',  # Sephardic pronunciation
         'a': 'Mincha Ketanah',  # Ashkenazic pronunciation
@@ -58,7 +58,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'פלג המנחה',
     },
     'Shkiah': {
-        'en': 'Shkiah',
+        'en': 'Sunset',
         'he': 'שקיעה',
         's': 'Shekia',  # Sephardic pronunciation
         'a': 'Shkiah',  # Ashkenazic pronunciation
@@ -66,7 +66,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'שקיעה',
     },
     'Tzais': {
-        'en': 'Tzais',
+        'en': 'Nightfall',
         'he': 'צאת הכוכבים',
         's': 'Tzait',  # Sephardic pronunciation
         'a': 'Tzais',  # Ashkenazic pronunciation
@@ -74,7 +74,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'צאת הכוכבים',
     },
     'Tzais 72 minutes': {
-        'en': 'Tzais 72 minutes',
+        'en': 'Nightfall (72 min)',
         'he': 'צאת הכוכבים 72 דקות',
         's': 'Tzait 72 minutes',  # Sephardic pronunciation
         'a': 'Tzais 72 minutes',  # Ashkenazic pronunciation
@@ -82,7 +82,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'צאת הכוכבים 72 דקות',
     },
     'Sof Zman Krias Shema GRA': {
-        'en': 'Sof Zman Krias Shema GRA',
+        'en': 'Latest Shema (GRA)',
         'he': 'סוף זמן קריאת שמע גר״א',
         's': 'Sof Zman Kriat Shema GRA',  # Sephardic pronunciation
         'a': 'Sof Zman Krias Shema GRA',  # Ashkenazic pronunciation
@@ -90,7 +90,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'סוף זמן קריאת שמע גר״א',
     },
     'Sof Zman Krias Shema MGA': {
-        'en': 'Sof Zman Krias Shema MGA',
+        'en': 'Latest Shema (MGA)',
         'he': 'סוף זמן קריאת שמע מג״א',
         's': 'Sof Zman Kriat Shema MGA',  # Sephardic pronunciation
         'a': 'Sof Zman Krias Shema MGA',  # Ashkenazic pronunciation
@@ -98,7 +98,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'סוף זמן קריאת שמע מג״א',
     },
     'Sof Zman Tefillah GRA': {
-        'en': 'Sof Zman Tefillah GRA',
+        'en': 'Latest Shacharis (GRA)',
         'he': 'סוף זמן תפילה גר״א',
         's': 'Sof Zman Tefila GRA',  # Sephardic pronunciation
         'a': 'Sof Zman Tefillah GRA',  # Ashkenazic pronunciation
@@ -106,7 +106,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'סוף זמן תפילה גר״א',
     },
     'Sof Zman Tefillah MGA': {
-        'en': 'Sof Zman Tefillah MGA',
+        'en': 'Latest Shacharis (MGA)',
         'he': 'סוף זמן תפילה מג״א',
         's': 'Sof Zman Tefila MGA',  # Sephardic pronunciation
         'a': 'Sof Zman Tefillah MGA',  # Ashkenazic pronunciation
@@ -156,7 +156,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'שקיעה מותאמת לגובה',
     },
     'Alos 16.1°': {
-        'en': 'Alos 16.1°',
+        'en': 'Dawn 16.1°',
         'he': 'עלות השחר 16.1°',
         's': 'Alot 16.1°',  # Sephardic pronunciation
         'a': 'Alos 16.1°',  # Ashkenazic pronunciation
@@ -164,7 +164,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'עלות השחר 16.1°',
     },
     'Alos 18°': {
-        'en': 'Alos 18°',
+        'en': 'Dawn 18°',
         'he': 'עלות השחר 18°',
         's': 'Alot 18°',  # Sephardic pronunciation
         'a': 'Alos 18°',  # Ashkenazic pronunciation
@@ -172,7 +172,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'עלות השחר 18°',
     },
     'Alos 19.8°': {
-        'en': 'Alos 19.8°',
+        'en': 'Dawn 19.8°',
         'he': 'עלות השחר 19.8°',
         's': 'Alot 19.8°',  # Sephardic pronunciation
         'a': 'Alos 19.8°',  # Ashkenazic pronunciation
@@ -180,7 +180,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'עלות השחר 19.8°',
     },
     'Tzais 8.5°': {
-        'en': 'Tzais 8.5°',
+        'en': 'Nightfall 8.5°',
         'he': 'צאת הכוכבים 8.5°',
         's': 'Tzait 8.5°',  # Sephardic pronunciation
         'a': 'Tzais 8.5°',  # Ashkenazic pronunciation
@@ -188,7 +188,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'צאת הכוכבים 8.5°',
     },
     'Tzais 7.083°': {
-        'en': 'Tzais 7.083°',
+        'en': 'Nightfall 7.083°',
         'he': 'צאת הכוכבים 7.083°',
         's': 'Tzait 7.083°',  # Sephardic pronunciation
         'a': 'Tzais 7.083°',  # Ashkenazic pronunciation
@@ -196,7 +196,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'צאת הכוכבים 7.083°',
     },
     'Tzais 5.95°': {
-        'en': 'Tzais 5.95°',
+        'en': 'Nightfall 5.95°',
         'he': 'צאת הכוכבים 5.95°',
         's': 'Tzait 5.95°',  # Sephardic pronunciation
         'a': 'Tzais 5.95°',  # Ashkenazic pronunciation
@@ -204,7 +204,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'צאת הכוכבים 5.95°',
     },
     'Tzais 6.45°': {
-        'en': 'Tzais 6.45°',
+        'en': 'Nightfall 6.45°',
         'he': 'צאת הכוכבים 6.45°',
         's': 'Tzait 6.45°',  # Sephardic pronunciation
         'a': 'Tzais 6.45°',  # Ashkenazic pronunciation
@@ -212,7 +212,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'צאת הכוכבים 6.45°',
     },
     'Sun Transit': {
-        'en': 'Sun Transit',
+        'en': 'Solar Noon',
         'he': 'מעבר השמש (חצות החמה)',
         's': 'Sun Transit (Chatzot HaChama)',  # Sephardic pronunciation
         'a': 'Sun Transit (Chatzos HaChamah)',  # Ashkenazic pronunciation
@@ -222,7 +222,7 @@ ZMANIM_TRANSLATIONS = {
 
     # Halachic Hours (3 terms)
     'Shaah Zmanis GRA': {
-        'en': 'Shaah Zmanis GRA',
+        'en': 'Halachic Hour (GRA)',
         'he': 'שעה זמנית גר״א',
         's': 'Sha\'a Zmanit GRA',  # Sephardic pronunciation
         'a': 'Shaah Zmanis GRA',  # Ashkenazic pronunciation
@@ -230,7 +230,7 @@ ZMANIM_TRANSLATIONS = {
         'ah': 'שעה זמנית גר״א',
     },
     'Shaah Zmanis MGA': {
-        'en': 'Shaah Zmanis MGA',
+        'en': 'Halachic Hour (MGA)',
         'he': 'שעה זמנית מג״א',
         's': 'Sha\'a Zmanit MGA',  # Sephardic pronunciation
         'a': 'Shaah Zmanis MGA',  # Ashkenazic pronunciation
@@ -253,7 +253,7 @@ ZMANIM_TRANSLATIONS = {
 
 LIMUDIM_TRANSLATIONS = {
     'Parsha': {
-        'en': 'Parsha',
+        'en': 'Torah Portion',
         'he': 'פרשה',
         's': 'Parasha',  # Sephardic pronunciation
         'a': 'Parsha',  # Ashkenazic pronunciation
@@ -261,7 +261,7 @@ LIMUDIM_TRANSLATIONS = {
         'ah': 'פרשה',
     },
     'Daf Yomi Bavli': {
-        'en': 'Daf Yomi Bavli',
+        'en': 'Daily Talmud Page',
         'he': 'דף יומי בבלי',
         's': 'Daf Yomi Bavli',  # Sephardic pronunciation
         'a': 'Daf Yomi Bavli',  # Ashkenazic pronunciation
@@ -269,7 +269,7 @@ LIMUDIM_TRANSLATIONS = {
         'ah': 'דף יומי בבלי',
     },
     'Daf Yomi Yerushalmi': {
-        'en': 'Daf Yomi Yerushalmi',
+        'en': 'Daily Jerusalem Talmud',
         'he': 'דף יומי ירושלמי',
         's': 'Daf Yomi Yerushalmi',  # Sephardic pronunciation
         'a': 'Daf Yomi Yerushalmi',  # Ashkenazic pronunciation
@@ -277,7 +277,7 @@ LIMUDIM_TRANSLATIONS = {
         'ah': 'דף יומי ירושלמי',
     },
     'Mishna Yomis': {
-        'en': 'Mishna Yomis',
+        'en': 'Daily Mishna',
         'he': 'משנה יומית',
         's': 'Mishna Yomit',  # Sephardic pronunciation
         'a': 'Mishna Yomis',  # Ashkenazic pronunciation
@@ -285,7 +285,7 @@ LIMUDIM_TRANSLATIONS = {
         'ah': 'משנה יומית',
     },
     'Tehillim Monthly': {
-        'en': 'Tehillim Monthly',
+        'en': 'Monthly Psalms',
         'he': 'תהילים חודשי',
         's': 'Tehillim Chodshi',  # Sephardic pronunciation
         'a': 'Tehillim Monthly',  # Ashkenazic pronunciation
@@ -293,7 +293,7 @@ LIMUDIM_TRANSLATIONS = {
         'ah': 'תהילים חודשי',
     },
     'Pirkei Avos': {
-        'en': 'Pirkei Avos',
+        'en': 'Ethics of the Fathers',
         'he': 'פרקי אבות',
         's': 'Pirkei Avot',  # Sephardic pronunciation
         'a': 'Pirkei Avos',  # Ashkenazic pronunciation
@@ -301,7 +301,7 @@ LIMUDIM_TRANSLATIONS = {
         'ah': 'פרקי אבות',
     },
     'Daf HaShavua Bavli': {
-        'en': 'Daf HaShavua Bavli',
+        'en': 'Weekly Talmud Page',
         'he': 'דף השבוע בבלי',
         's': 'Daf HaShavua Bavli',  # Sephardic pronunciation
         'a': 'Daf HaShavua Bavli',  # Ashkenazic pronunciation
@@ -309,7 +309,7 @@ LIMUDIM_TRANSLATIONS = {
         'ah': 'דף השבוע בבלי',
     },
     'Amud Yomi Bavli Dirshu': {
-        'en': 'Amud Yomi Bavli Dirshu',
+        'en': 'Daily Half-Page (Dirshu)',
         'he': 'עמוד יומי בבלי דרשו',
         's': 'Amud Yomi Bavli Dirshu',  # Sephardic pronunciation
         'a': 'Amud Yomi Bavli Dirshu',  # Ashkenazic pronunciation
@@ -364,7 +364,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'יום בשבוע',
     },
     'Significant Day': {
-        'en': 'Significant Day',
+        'en': 'Special Day',
         'he': 'יום מיוחד',
         's': 'Yom Meyuchad',  # Sephardic pronunciation
         'a': 'Significant Day',  # Ashkenazic pronunciation
@@ -388,7 +388,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'יום בחנוכה',
     },
     'Is Rosh Chodesh': {
-        'en': 'Is Rosh Chodesh',
+        'en': 'New Month',
         'he': 'ראש חודש',
         's': 'Rosh Chodesh',  # Sephardic pronunciation
         'a': 'Rosh Chodesh',  # Ashkenazic pronunciation
@@ -396,7 +396,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'ראש חודש',
     },
     'Is Yom Tov': {
-        'en': 'Is Yom Tov',
+        'en': 'Holiday',
         'he': 'יום טוב',
         's': 'Yom Tov',  # Sephardic pronunciation
         'a': 'Yom Tov',  # Ashkenazic pronunciation
@@ -404,7 +404,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'יום טוב',
     },
     'Is Chol HaMoed': {
-        'en': 'Is Chol HaMoed',
+        'en': 'Intermediate Days',
         'he': 'חול המועד',
         's': 'Chol HaMoed',  # Sephardic pronunciation
         'a': 'Chol HaMoed',  # Ashkenazic pronunciation
@@ -412,7 +412,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'חול המועד',
     },
     'Is Erev Yom Tov': {
-        'en': 'Is Erev Yom Tov',
+        'en': 'Eve of Holiday',
         'he': 'ערב יום טוב',
         's': 'Erev Yom Tov',  # Sephardic pronunciation
         'a': 'Erev Yom Tov',  # Ashkenazic pronunciation
@@ -420,7 +420,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'ערב יום טוב',
     },
     'Is Chanukah': {
-        'en': 'Is Chanukah',
+        'en': 'Chanukah',
         'he': 'חנוכה',
         's': 'Chanuka',  # Sephardic pronunciation
         'a': 'Chanukah',  # Ashkenazic pronunciation
@@ -428,7 +428,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'חנוכה',
     },
     'Is Fast Day': {
-        'en': 'Is Fast Day',
+        'en': 'Fast Day',
         'he': 'יום צום',
         's': 'Yom Tzom',  # Sephardic pronunciation
         'a': 'Fast Day',  # Ashkenazic pronunciation
@@ -436,7 +436,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'יום צום',
     },
     'Is Assur Bemelacha': {
-        'en': 'Is Assur Bemelacha',
+        'en': 'Work Prohibited',
         'he': 'אסור במלאכה',
         's': 'Assur BeMelacha',  # Sephardic pronunciation
         'a': 'Assur Bemelacha',  # Ashkenazic pronunciation
@@ -444,7 +444,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'אסור במלאכה',
     },
     'Is Erev Rosh Chodesh': {
-        'en': 'Is Erev Rosh Chodesh',
+        'en': 'Eve of New Month',
         'he': 'ערב ראש חודש',
         's': 'Erev Rosh Chodesh',  # Sephardic pronunciation
         'a': 'Erev Rosh Chodesh',  # Ashkenazic pronunciation
@@ -452,7 +452,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'ערב ראש חודש',
     },
     'Molad': {
-        'en': 'Molad',
+        'en': 'New Moon',
         'he': 'מולד',
         's': 'Molad',  # Sephardic pronunciation
         'a': 'Molad',  # Ashkenazic pronunciation
@@ -460,7 +460,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'מולד',
     },
     'Kiddush Levana Earliest (3 Days)': {
-        'en': 'Kiddush Levana Earliest (3 Days)',
+        'en': 'Earliest Moon Blessing (3 Days)',
         'he': 'קידוש לבנה מוקדם (3 ימים)',
         's': 'Kiddush Levana Earliest (3 Days)',  # Sephardic pronunciation
         'a': 'Kiddush Levanah Earliest (3 Days)',  # Ashkenazic pronunciation
@@ -468,7 +468,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'קידוש לבנה מוקדם (3 ימים)',
     },
     'Kiddush Levana Earliest (7 Days)': {
-        'en': 'Kiddush Levana Earliest (7 Days)',
+        'en': 'Earliest Moon Blessing (7 Days)',
         'he': 'קידוש לבנה מוקדם (7 ימים)',
         's': 'Kiddush Levana Earliest (7 Days)',  # Sephardic pronunciation
         'a': 'Kiddush Levanah Earliest (7 Days)',  # Ashkenazic pronunciation
@@ -476,7 +476,7 @@ JEWISH_CALENDAR_TRANSLATIONS = {
         'ah': 'קידוש לבנה מוקדם (7 ימים)',
     },
     'Kiddush Levana Latest (15 Days)': {
-        'en': 'Kiddush Levana Latest (15 Days)',
+        'en': 'Latest Moon Blessing (15 Days)',
         'he': 'קידוש לבנה מאוחר (15 ימים)',
         's': 'Kiddush Levana Latest (15 Days)',  # Sephardic pronunciation
         'a': 'Kiddush Levanah Latest (15 Days)',  # Ashkenazic pronunciation
