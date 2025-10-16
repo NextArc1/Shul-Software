@@ -1175,10 +1175,6 @@ Thank you for your interest in Shul Schedule. Your registration request for
   • Set your location for accurate zmanim calculations
   • Add custom times and announcements
   • Access your unique display URL
-To complete your account setup, please visit:
-{registration_url}
-
-This link will expire in 7 days.
 
 Best regards,
 Shua P

@@ -379,7 +379,7 @@ class CompleteRegistrationSerializer(serializers.Serializer):
     token = serializers.UUIDField()
     password = serializers.CharField(min_length=8, write_only=True)
     shul_name = serializers.CharField(max_length=200, required=False)
-    zip_code = serializers.CharField(max_length=10, required=False, allow_blank=True)
+    zip_code = serializers.CharField(max_length=10, required=True, allow_blank=False)
     country = serializers.CharField(max_length=100, default='United States')
 
     def validate_token(self, value):
@@ -415,36 +415,64 @@ class CompleteRegistrationSerializer(serializers.Serializer):
         user.set_password(password)
         user.save()
 
-        # Get location data if zip code provided
+        # Get location data from form input
         zip_code = validated_data.get('zip_code', '')
         country = validated_data.get('country', 'United States')
+
+        # Use form zipcode if provided, otherwise fall back to registration zipcode
+        final_zip_code = zip_code or registration.zip_code
+        final_country = country or registration.country
+
+        # Ensure we have a zipcode
+        if not final_zip_code:
+            raise serializers.ValidationError({
+                'zip_code': 'Zip code is required for accurate time calculations.'
+            })
+
         latitude = 0.0
         longitude = 0.0
         timezone = 'America/New_York'
 
-        if zip_code:
-            try:
-                import requests
-                from decouple import config
-                api_key = config('OPENCAGE_API_KEY')
-                query = f"{zip_code}, {country}"
-                api_url = f"https://api.opencagedata.com/geocode/v1/json?q={query}&key={api_key}&limit=1"
+        # Get coordinates from the zipcode using OpenStreetMap Nominatim API (free, no API key needed)
+        try:
+            import requests
+            from .views import fetch_timezone_by_coordinates
 
-                response = requests.get(api_url)
-                data = response.json()
+            # Use Nominatim API (same as frontend ZipCodeForm)
+            query = f"{final_zip_code}, {final_country}"
+            api_url = f"https://nominatim.openstreetmap.org/search?format=json&q={requests.utils.quote(query)}&limit=1"
 
-                if data and data['results']:
-                    coordinates = data['results'][0]['geometry']
-                    latitude = coordinates['lat']
-                    longitude = coordinates['lng']
+            # Add User-Agent header (required by Nominatim)
+            headers = {
+                'User-Agent': 'ShulSchedule/1.0'
+            }
 
-                    # Get timezone
-                    from .views import fetch_timezone_by_coordinates
-                    timezone_result = fetch_timezone_by_coordinates(latitude, longitude)
-                    if timezone_result:
-                        timezone = timezone_result
-            except Exception as e:
-                print(f"Failed to get coordinates: {e}")
+            response = requests.get(api_url, headers=headers)
+            data = response.json()
+
+            if data and len(data) > 0:
+                result = data[0]
+                latitude = float(result['lat'])
+                longitude = float(result['lon'])
+
+                # Get timezone from coordinates
+                timezone_result = fetch_timezone_by_coordinates(latitude, longitude)
+                if timezone_result:
+                    timezone = timezone_result
+            else:
+                # No results found - invalid zipcode
+                raise serializers.ValidationError({
+                    'zip_code': f'Could not find location for zip code "{final_zip_code}" in {final_country}. Please verify the zip code is correct.'
+                })
+        except serializers.ValidationError:
+            raise  # Re-raise validation errors
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to get coordinates for {final_zip_code}: {e}")
+            raise serializers.ValidationError({
+                'zip_code': 'Unable to verify zip code location. Please check your internet connection and try again.'
+            })
 
         # Create shul using registration data
         shul_name = validated_data.get('shul_name', registration.organization_name)
@@ -454,8 +482,8 @@ class CompleteRegistrationSerializer(serializers.Serializer):
         shul = Shul.objects.create(
             admin=user,
             name=shul_name,
-            zip_code=registration.zip_code or zip_code,
-            country=registration.country or country,
+            zip_code=final_zip_code,
+            country=final_country,
             address=full_address,
             email=registration.email,
             phone=registration.phone,
@@ -468,10 +496,24 @@ class CompleteRegistrationSerializer(serializers.Serializer):
         if latitude and longitude and latitude != 0.0 and longitude != 0.0:
             from .zmanim_calculator import ZmanimCalculator
             from datetime import date, timedelta
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.info(f"Starting automatic 6-month zmanim calculation for new shul: {shul.name} (ID: {shul.id})")
+            logger.info(f"Location: Lat {latitude}, Lon {longitude}, Timezone: {timezone}")
 
             start_date = date.today()
             end_date = start_date + timedelta(days=180)
-            ZmanimCalculator.calculate_date_range(shul, start_date, end_date)
+
+            try:
+                count = ZmanimCalculator.calculate_date_range(shul, start_date, end_date)
+                logger.info(f"Successfully calculated {count} days of zmanim for {shul.name}")
+            except Exception as e:
+                logger.error(f"Failed to calculate zmanim for {shul.name}: {e}")
+        else:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Skipping zmanim calculation for {shul.name} - invalid coordinates (Lat: {latitude}, Lon: {longitude})")
 
         # Mark token as used
         registration.token_used = True
