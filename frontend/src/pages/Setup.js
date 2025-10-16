@@ -1,12 +1,429 @@
 import React from 'react';
 
-function Setup() {
+const Setup = () => {
+  const styles = {
+    pageContainer: {
+      minHeight: '100vh',
+      backgroundColor: '#f5f7fa',
+      padding: '0',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+    },
+    heroSection: {
+      background: 'linear-gradient(135deg, #162A45 0%, #1e3a5f 100%)',
+      color: 'white',
+      padding: '60px 40px',
+      textAlign: 'center',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+    },
+    heroTitle: {
+      fontSize: '42px',
+      fontWeight: '700',
+      marginBottom: '15px',
+      letterSpacing: '-1px'
+    },
+    heroSubtitle: {
+      fontSize: '20px',
+      opacity: 0.9,
+      maxWidth: '700px',
+      margin: '0 auto',
+      lineHeight: '1.6'
+    },
+    contentWrapper: {
+      maxWidth: '1000px',
+      margin: '0 auto',
+      padding: '50px 40px'
+    },
+    section: {
+      marginBottom: '60px'
+    },
+    sectionTitle: {
+      fontSize: '28px',
+      fontWeight: '700',
+      color: '#2c3e50',
+      marginBottom: '25px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px'
+    },
+    card: {
+      backgroundColor: 'white',
+      borderRadius: '12px',
+      padding: '30px',
+      boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+      border: '1px solid #e5e7eb',
+      marginBottom: '25px'
+    },
+    requirementsList: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+      gap: '20px',
+      marginTop: '20px'
+    },
+    requirementItem: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: '15px',
+      padding: '20px',
+      backgroundColor: '#f9fafb',
+      borderRadius: '10px',
+      border: '1px solid #e5e7eb'
+    },
+    requirementIcon: {
+      fontSize: '32px',
+      flexShrink: 0
+    },
+    requirementContent: {
+      flex: 1
+    },
+    requirementTitle: {
+      fontSize: '16px',
+      fontWeight: '600',
+      color: '#2c3e50',
+      marginBottom: '6px'
+    },
+    requirementDescription: {
+      fontSize: '14px',
+      color: '#6b7280',
+      lineHeight: '1.5'
+    },
+    stepsList: {
+      counterReset: 'step-counter'
+    },
+    stepItem: {
+      position: 'relative',
+      paddingLeft: '70px',
+      marginBottom: '35px'
+    },
+    stepNumber: {
+      position: 'absolute',
+      left: '0',
+      top: '0',
+      width: '50px',
+      height: '50px',
+      backgroundColor: '#162A45',
+      color: 'white',
+      borderRadius: '50%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '22px',
+      fontWeight: '700'
+    },
+    stepTitle: {
+      fontSize: '20px',
+      fontWeight: '600',
+      color: '#162A45',
+      marginBottom: '10px'
+    },
+    stepDescription: {
+      fontSize: '15px',
+      color: '#6b7280',
+      lineHeight: '1.7',
+      marginBottom: '12px'
+    },
+    tipBox: {
+      backgroundColor: '#fef3c7',
+      border: '1px solid #fbbf24',
+      borderRadius: '8px',
+      padding: '15px',
+      marginTop: '12px',
+      display: 'flex',
+      gap: '10px',
+      alignItems: 'flex-start'
+    },
+    tipIcon: {
+      fontSize: '20px',
+      flexShrink: 0
+    },
+    tipText: {
+      fontSize: '14px',
+      color: '#92400e',
+      lineHeight: '1.5'
+    },
+    highlightBox: {
+      backgroundColor: '#dbeafe',
+      border: '2px solid #3b82f6',
+      borderRadius: '10px',
+      padding: '20px',
+      marginTop: '12px'
+    },
+    highlightTitle: {
+      fontSize: '16px',
+      fontWeight: '600',
+      color: '#1e40af',
+      marginBottom: '8px'
+    },
+    highlightText: {
+      fontSize: '14px',
+      color: '#1e3a8a',
+      lineHeight: '1.6'
+    },
+    troubleshootingList: {
+      listStyle: 'none',
+      padding: 0,
+      margin: 0
+    },
+    troubleshootingItem: {
+      backgroundColor: 'white',
+      border: '1px solid #e5e7eb',
+      borderRadius: '8px',
+      padding: '20px',
+      marginBottom: '15px'
+    },
+    troubleshootingQuestion: {
+      fontSize: '16px',
+      fontWeight: '600',
+      color: '#2c3e50',
+      marginBottom: '8px'
+    },
+    troubleshootingAnswer: {
+      fontSize: '14px',
+      color: '#6b7280',
+      lineHeight: '1.6'
+    },
+    videoPlaceholder: {
+      backgroundColor: '#f3f4f6',
+      borderRadius: '8px',
+      padding: '40px',
+      textAlign: 'center',
+      border: '2px dashed #d1d5db',
+      marginTop: '20px'
+    },
+    videoText: {
+      fontSize: '16px',
+      color: '#6b7280',
+      marginBottom: '10px'
+    }
+  };
+
+  const requirements = [
+    {
+      icon: '',
+      title: 'Computer',
+      description: 'Any computer that can run a web browser (Chrome, Firefox, Safari, or Edge)'
+    },
+    {
+      icon: '',
+      title: 'TV or Monitor',
+      description: 'Any screen with an HDMI port to display the zmanim'
+    },
+    {
+      icon: '',
+      title: 'Internet Connection',
+      description: 'WiFi or ethernet connection to keep zmanim updated'
+    }
+  ];
+
+  const troubleshooting = [
+    {
+      question: 'The screen turned off or shows a screensaver',
+      answer: 'Go to your computer\'s display settings and set "Turn off screen" to "Never" and disable the screensaver. On Windows: Settings > System > Power & Sleep. On Mac: System Preferences > Energy Saver.'
+    },
+    {
+      question: 'The display shows old zmanim',
+      answer: 'Check that your internet connection is working. The display updates automatically every 5 minutes, but needs internet to get new times. Try refreshing the page by pressing F5.'
+    },
+    {
+      question: 'I can\'t find the display URL',
+      answer: 'Click the "Shul Display" button in the top navigation bar. Your unique display link will open in a new tab. Bookmark this page for easy access.'
+    },
+    {
+      question: 'I want to hide the mouse cursor',
+      answer: 'Press F11 to enter fullscreen mode. The cursor will hide automatically after a few seconds of no movement.'
+    }
+  ];
+
   return (
-    <div>
-      <h1>Setup</h1>
-      <p>Configuration and setup options for the shul display system.</p>
+    <div style={styles.pageContainer}>
+      {/* Hero Section */}
+      <div style={styles.heroSection}>
+        <h1 style={styles.heroTitle}>Setup Your Shul Display</h1>
+        <p style={styles.heroSubtitle}>
+          Follow these simple steps to get your shul's zmanim display up and running in minutes
+        </p>
+      </div>
+
+      {/* Main Content */}
+      <div style={styles.contentWrapper}>
+
+        {/* What You Need Section */}
+        <div style={styles.section}>
+          <h2 style={styles.sectionTitle}>
+            <span>📋</span>
+            What You Need
+          </h2>
+          <div style={styles.card}>
+            <p style={{ fontSize: '16px', color: '#6b7280', marginBottom: '20px' }}>
+              Don't worry—you don't need to be a tech expert! Here's everything you need to get started:
+            </p>
+            <div style={styles.requirementsList}>
+              {requirements.map((req, index) => (
+                <div key={index} style={styles.requirementItem}>
+                  {req.icon && <div style={styles.requirementIcon}>{req.icon}</div>}
+                  <div style={styles.requirementContent}>
+                    <div style={styles.requirementTitle}>{req.title}</div>
+                    <div style={styles.requirementDescription}>{req.description}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Step by Step Instructions */}
+        <div style={styles.section}>
+          <h2 style={styles.sectionTitle}>
+            <span>🚀</span>
+            Step-by-Step Setup
+          </h2>
+          <div style={styles.card}>
+            <div style={styles.stepsList}>
+
+              {/* Step 1 */}
+              <div style={styles.stepItem}>
+                <div style={styles.stepNumber}>1</div>
+                <h3 style={styles.stepTitle}>Configure Your Shul Settings</h3>
+                <p style={styles.stepDescription}>
+                  Go to "Shul Settings" in the top menu and fill in your shul's information:
+                </p>
+                <ul style={{ marginLeft: '20px', color: '#6b7280', lineHeight: '1.8' }}>
+                  <li>Enter your zip code (this calculates accurate zmanim for your location)</li>
+                  <li>Choose your minhag (Ashkenazi or Sephardi)</li>
+                  <li>Pick your preferred language</li>
+                  <li>Customize colors and fonts if you'd like</li>
+                </ul>
+                <div style={styles.tipBox}>
+                  <span style={styles.tipIcon}>💡</span>
+                  <span style={styles.tipText}>
+                    The zip code is the most important part—this is how we calculate the correct zmanim for your exact location!
+                  </span>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div style={styles.stepItem}>
+                <div style={styles.stepNumber}>2</div>
+                <h3 style={styles.stepTitle}>Arrange Your Display</h3>
+                <p style={styles.stepDescription}>
+                  Go to "Zmanim Settings" and drag the zmanim you want into the display boxes:
+                </p>
+                <ul style={{ marginLeft: '20px', color: '#6b7280', lineHeight: '1.8' }}>
+                  <li>Drag important times (like Shacharis, Mincha, Maariv) into "Shabbos Times" and "Weekday Times" boxes</li>
+                  <li>Add Daf Yomi, Parsha, and other learning schedules</li>
+                  <li>Include any custom minyan times or announcements</li>
+                  <li>Remove items you don't need by clicking the × button</li>
+                </ul>
+                <div style={styles.tipBox}>
+                  <span style={styles.tipIcon}>💡</span>
+                  <span style={styles.tipText}>
+                    You can rearrange items by dragging them up or down within a box. Changes save automatically!
+                  </span>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div style={styles.stepItem}>
+                <div style={styles.stepNumber}>3</div>
+                <h3 style={styles.stepTitle}>Connect Your Computer to the TV</h3>
+                <p style={styles.stepDescription}>
+                  Now let's get this on your shul's screen:
+                </p>
+                <ul style={{ marginLeft: '20px', color: '#6b7280', lineHeight: '1.8' }}>
+                  <li>Take an HDMI cable and connect one end to your computer</li>
+                  <li>Connect the other end to your TV or monitor</li>
+                  <li>Turn on the TV and select the correct HDMI input (usually labeled HDMI 1, HDMI 2, etc.)</li>
+                  <li>You should see your computer screen appear on the TV</li>
+                </ul>
+                <div style={styles.tipBox}>
+                  <span style={styles.tipIcon}>💡</span>
+                  <span style={styles.tipText}>
+                    If you don't see anything, press the "Source" or "Input" button on your TV remote and select the right HDMI port.
+                  </span>
+                </div>
+              </div>
+
+              {/* Step 4 */}
+              <div style={styles.stepItem}>
+                <div style={styles.stepNumber}>4</div>
+                <h3 style={styles.stepTitle}>Open Your Display Page</h3>
+                <p style={styles.stepDescription}>
+                  Now open the display on your computer:
+                </p>
+                <ul style={{ marginLeft: '20px', color: '#6b7280', lineHeight: '1.8' }}>
+                  <li>Click the "Shul Display" button at the top of this page</li>
+                  <li>Your shul's display will open in a new tab</li>
+                  <li>Press F11 on your keyboard to make it fullscreen</li>
+                  <li>Bookmark this page so you can find it easily later</li>
+                </ul>
+                <div style={styles.highlightBox}>
+                  <div style={styles.highlightTitle}>Important: Keep This Page Open</div>
+                  <div style={styles.highlightText}>
+                    Leave this page open on your computer 24/7. The zmanim will update automatically every day.
+                    Don't close the browser or turn off the computer!
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 5 */}
+              <div style={styles.stepItem}>
+                <div style={styles.stepNumber}>5</div>
+                <h3 style={styles.stepTitle}>Configure Power & Sleep Settings</h3>
+                <p style={styles.stepDescription}>
+                  To keep the display running all the time:
+                </p>
+                <ul style={{ marginLeft: '20px', color: '#6b7280', lineHeight: '1.8' }}>
+                  <li><strong>Windows:</strong> Go to Settings → System → Power & Sleep. Set "Screen" and "Sleep" to "Never"</li>
+                  <li><strong>Mac:</strong> Go to System Preferences → Energy Saver. Set "Turn display off after" to "Never"</li>
+                  <li>Disable the screensaver in Display settings</li>
+                </ul>
+                <div style={styles.tipBox}>
+                  <span style={styles.tipIcon}>💡</span>
+                  <span style={styles.tipText}>
+                    This ensures your display stays on all day and doesn't go to sleep during davening!
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        {/* Troubleshooting Section */}
+        <div style={styles.section}>
+          <h2 style={styles.sectionTitle}>
+            <span>🔧</span>
+            Common Questions & Troubleshooting
+          </h2>
+          <ul style={styles.troubleshootingList}>
+            {troubleshooting.map((item, index) => (
+              <li key={index} style={styles.troubleshootingItem}>
+                <div style={styles.troubleshootingQuestion}>Q: {item.question}</div>
+                <div style={styles.troubleshootingAnswer}>A: {item.answer}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Final Tips Section */}
+        <div style={styles.section}>
+          <div style={{ ...styles.card, backgroundColor: '#f0fdf4', border: '2px solid #86efac' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: '600', color: '#166534', marginBottom: '15px' }}>
+              ✅ You're All Set!
+            </h3>
+            <p style={{ fontSize: '15px', color: '#15803d', lineHeight: '1.7' }}>
+              That's it! Your shul display is now up and running. The zmanim will update automatically every day,
+              and you can make changes anytime from "Shul Settings" or "Zmanim Settings."
+            </p>
+            <p style={{ fontSize: '15px', color: '#15803d', lineHeight: '1.7', marginTop: '15px' }}>
+              If you need to make any changes to what's displayed, just come back to this website,
+              log in, and adjust the settings. The changes will appear on your display within a few minutes.
+            </p>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
-}
+};
 
 export default Setup;

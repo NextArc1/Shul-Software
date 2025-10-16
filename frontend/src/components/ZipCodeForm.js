@@ -22,6 +22,14 @@ const ZipcodeForm = () => {
   const [centerLogoSize, setCenterLogoSize] = useState(400);
   const [currentLogoUrl, setCurrentLogoUrl] = useState('');
   const [removeLogo, setRemoveLogo] = useState(false);
+  const [boxesOutlineColor, setBoxesOutlineColor] = useState('#d4af37');
+  const [headerTextColor, setHeaderTextColor] = useState('#ffc764');
+  const [headerBgColor, setHeaderBgColor] = useState('#162A45');
+  const [backgroundType, setBackgroundType] = useState('default');
+  const [backgroundColor, setBackgroundColor] = useState('#000000');
+  const [backgroundImage, setBackgroundImage] = useState(null);
+  const [currentBackgroundUrl, setCurrentBackgroundUrl] = useState('');
+  const [removeBackground, setRemoveBackground] = useState(false);
 
   // Styles
   const styles = {
@@ -223,6 +231,12 @@ const ZipcodeForm = () => {
         if (data.center_vertical_position !== undefined) setCenterVerticalPosition(data.center_vertical_position);
         if (data.center_logo) setCurrentLogoUrl(data.center_logo);
         if (data.center_logo_size) setCenterLogoSize(data.center_logo_size);
+        if (data.boxes_outline_color) setBoxesOutlineColor(data.boxes_outline_color);
+        if (data.header_text_color) setHeaderTextColor(data.header_text_color);
+        if (data.header_bg_color) setHeaderBgColor(data.header_bg_color);
+        if (data.background_type) setBackgroundType(data.background_type);
+        if (data.background_color) setBackgroundColor(data.background_color);
+        if (data.background_image) setCurrentBackgroundUrl(data.background_image);
       } catch (error) {
         console.error('Error loading settings:', error);
       }
@@ -298,6 +312,11 @@ const ZipcodeForm = () => {
     formData.append('center_text_font', centerTextFont);
     formData.append('center_vertical_position', centerVerticalPosition);
     formData.append('center_logo_size', centerLogoSize);
+    formData.append('boxes_outline_color', boxesOutlineColor);
+    formData.append('header_text_color', headerTextColor);
+    formData.append('header_bg_color', headerBgColor);
+    formData.append('background_type', backgroundType);
+    formData.append('background_color', backgroundColor);
 
     // Include location data if coordinates are available
     if (lat && lon) {
@@ -315,6 +334,16 @@ const ZipcodeForm = () => {
     // Flag to remove logo
     if (removeLogo) {
       formData.append('remove_logo', 'true');
+    }
+
+    // Include background image if uploaded
+    if (backgroundImage) {
+      formData.append('background_image', backgroundImage);
+    }
+
+    // Flag to remove background image
+    if (removeBackground) {
+      formData.append('remove_background', 'true');
     }
 
     try {
@@ -343,6 +372,15 @@ const ZipcodeForm = () => {
 
       // Clear the temporary logo file selection
       setCenterLogo(null);
+
+      // Clear the remove flag and background state if background was removed
+      if (removeBackground) {
+        setCurrentBackgroundUrl('');
+        setRemoveBackground(false);
+      }
+
+      // Clear the temporary background file selection
+      setBackgroundImage(null);
 
       setTimeout(() => setSuccessMessage(''), 3000);
 
@@ -453,6 +491,9 @@ const ZipcodeForm = () => {
                 placeholder="Auto-populated"
                 style={styles.input}
               />
+
+
+
             </div>
             <div style={styles.formGroup}>
               <label style={styles.label}>Longitude</label>
@@ -468,7 +509,7 @@ const ZipcodeForm = () => {
         </div>
 
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>🎨 Display Preferences</h2>
+          <h2 style={styles.sectionTitle}>Display Preferences</h2>
           
           <div style={styles.formGroup}>
             <label style={styles.label}>Language & Tradition</label>
@@ -697,6 +738,166 @@ const ZipcodeForm = () => {
             />
             <div style={styles.helpText}>Upload a logo image to display instead of text. Recommended size: 400x400px</div>
           </div>
+        </div>
+
+        <div style={styles.section}>
+          <h2 style={styles.sectionTitle}>Box & Header Colors</h2>
+          <p style={styles.helpText}>Customize the outline color for all boxes and header styling</p>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Box Outline Color (All Boxes)</label>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <input
+                type="color"
+                value={boxesOutlineColor}
+                onChange={e => setBoxesOutlineColor(e.target.value)}
+                style={{ width: '60px', height: '40px', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer' }}
+              />
+              <input
+                type="text"
+                value={boxesOutlineColor}
+                onChange={e => setBoxesOutlineColor(e.target.value)}
+                placeholder="#d4af37"
+                style={{ ...styles.input, flex: 1 }}
+                maxLength={7}
+              />
+            </div>
+            <div style={styles.helpText}>This color will be applied to all 6 boxes on the display</div>
+          </div>
+
+          <div style={styles.gridTwo}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Header Text Color</label>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={headerTextColor}
+                  onChange={e => setHeaderTextColor(e.target.value)}
+                  style={{ width: '60px', height: '40px', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer' }}
+                />
+                <input
+                  type="text"
+                  value={headerTextColor}
+                  onChange={e => setHeaderTextColor(e.target.value)}
+                  placeholder="#ffc764"
+                  style={{ ...styles.input, flex: 1 }}
+                  maxLength={7}
+                />
+              </div>
+              <div style={styles.helpText}>Color for text in the top header</div>
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Header Background Color</label>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={headerBgColor}
+                  onChange={e => setHeaderBgColor(e.target.value)}
+                  style={{ width: '60px', height: '40px', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer' }}
+                />
+                <input
+                  type="text"
+                  value={headerBgColor}
+                  onChange={e => setHeaderBgColor(e.target.value)}
+                  placeholder="#162A45"
+                  style={{ ...styles.input, flex: 1 }}
+                  maxLength={7}
+                />
+              </div>
+              <div style={styles.helpText}>Background color for the top header</div>
+            </div>
+          </div>
+        </div>
+
+        <div style={styles.section}>
+          <h2 style={styles.sectionTitle}>🖼️ Background Customization</h2>
+          <p style={styles.helpText}>Choose your display background style</p>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Background Type</label>
+            <select
+              value={backgroundType}
+              onChange={(e) => setBackgroundType(e.target.value)}
+              style={styles.select}
+            >
+              <option value="default">Default Background</option>
+              <option value="color">Solid Color</option>
+              <option value="image">Custom Image</option>
+            </select>
+            <div style={styles.helpText}>Choose between default, solid color, or custom image background</div>
+          </div>
+
+          {backgroundType === 'color' && (
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Background Color</label>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={backgroundColor}
+                  onChange={(e) => setBackgroundColor(e.target.value)}
+                  style={{ width: '60px', height: '40px', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer' }}
+                />
+                <input
+                  type="text"
+                  value={backgroundColor}
+                  onChange={(e) => setBackgroundColor(e.target.value)}
+                  placeholder="#000000"
+                  style={{ ...styles.input, flex: 1 }}
+                  maxLength={7}
+                />
+              </div>
+              <div style={styles.helpText}>Choose a solid color for your background</div>
+            </div>
+          )}
+
+          {backgroundType === 'image' && (
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Background Image</label>
+              {currentBackgroundUrl && !backgroundImage && !removeBackground && (
+                <div style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: '#f3f4f6', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <p style={{ fontSize: '0.9rem', color: '#374151', margin: 0 }}>Current Background:</p>
+                    <button
+                      type="button"
+                      onClick={() => setRemoveBackground(true)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '0.85rem',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={e => e.target.style.backgroundColor = '#dc2626'}
+                      onMouseOut={e => e.target.style.backgroundColor = '#ef4444'}
+                    >
+                      Remove Background
+                    </button>
+                  </div>
+                  <img src={currentBackgroundUrl} alt="Current background" style={{ maxHeight: '100px', maxWidth: '200px', objectFit: 'contain' }} />
+                </div>
+              )}
+              {removeBackground && (
+                <div style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#991b1b' }}>
+                  Background image will be removed when you save settings
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  setBackgroundImage(e.target.files[0]);
+                  setRemoveBackground(false);
+                }}
+                style={styles.input}
+              />
+              <div style={styles.helpText}>Upload a custom background image. Recommended size: 1920x1080px</div>
+            </div>
+          )}
         </div>
 
         <button

@@ -119,14 +119,16 @@ const Ribbon = ({ text }) => (
 // Times are formatted by the backend with intelligent rounding and no AM/PM
 
 /* ================= Clock ================= */
-const useClock = (twelveHour) => {
+const useClock = (twelveHour, timezone) => {
   const [now, setNow] = useState(new Date());
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
+
   const options = {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-    hour12: !!twelveHour
+    hour12: !!twelveHour,
+    timeZone: timezone || undefined  // Use shul's timezone
   };
   const timeRaw = now.toLocaleTimeString("en-US", options);
   let time = timeRaw.replace(/\s?(AM|PM)/i, ''); // Remove AM/PM
@@ -136,7 +138,14 @@ const useClock = (twelveHour) => {
     time = time.substring(1);
   }
 
-  const date = now.toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const dateOptions = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: timezone || undefined  // Use shul's timezone
+  };
+  const date = now.toLocaleDateString("en-US", dateOptions);
   return { time, date };
 };
 
@@ -147,24 +156,11 @@ export default function ShulDisplay() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
-  const [layout, setLayout] = useState(null);
-
   const fetchDisplayData = useCallback(async () => {
     try {
       const json = await api.get(`/display/${shulSlug}/`);
       setData(json);
       setErr(null);
-
-      // Fetch layout configuration
-      try {
-        const layoutJson = await api.get('/shul/display-layout/');
-        if (layoutJson.layout_config) {
-          setLayout(layoutJson.layout_config);
-        }
-      } catch (layoutError) {
-        console.error('Error loading layout:', layoutError);
-        // Continue even if layout fails - use empty boxes
-      }
     } catch (e) {
       setErr(`Failed to load shul data: ${e.message}`);
     } finally {
@@ -181,18 +177,41 @@ export default function ShulDisplay() {
 
   const timeFormat = (data?.shul?.time_format) || "24h";
   const showSeconds = (data?.shul?.show_seconds) || false;
-  const { time: liveClock, date: longDate } = useClock(timeFormat === "12h");
+  const timezone = (data?.shul?.timezone) || "America/New_York";
+  const { time: liveClock, date: longDate } = useClock(timeFormat === "12h", timezone);
 
-  const bgStyle = useMemo(() => ({
-    backgroundImage: [
-      "radial-gradient(ellipse at top left, rgba(0,0,0,.35), transparent 45%)",
-      "linear-gradient(0deg, rgba(0,0,0,.35), rgba(0,0,0,.35))",
-      'url("https://shulschedule.com/wp-content/uploads/2024/08/SHul-Times-Image-1.png")'
-    ].join(", "),
-    backgroundSize: "cover, cover, cover",
-    backgroundPosition: "center, center, center",
-    backgroundRepeat: "no-repeat, no-repeat, no-repeat",
-  }), []);
+  const bgStyle = useMemo(() => {
+    const backgroundType = data?.shul?.background_type || 'default';
+    const backgroundColor = data?.shul?.background_color || '#000000';
+    const backgroundImage = data?.shul?.background_image;
+
+    if (backgroundType === 'color') {
+      // Solid color background
+      return {
+        backgroundColor: backgroundColor
+      };
+    } else if (backgroundType === 'image' && backgroundImage) {
+      // Custom image background
+      return {
+        backgroundImage: `url("${backgroundImage}")`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      };
+    } else {
+      // Default background
+      return {
+        backgroundImage: [
+          "radial-gradient(ellipse at top left, rgba(0,0,0,.35), transparent 45%)",
+          "linear-gradient(0deg, rgba(0,0,0,.35), rgba(0,0,0,.35))",
+          'url("https://shulschedule.com/wp-content/uploads/2024/08/SHul-Times-Image-1.png")'
+        ].join(", "),
+        backgroundSize: "cover, cover, cover",
+        backgroundPosition: "center, center, center",
+        backgroundRepeat: "no-repeat, no-repeat, no-repeat",
+      };
+    }
+  }, [data?.shul?.background_type, data?.shul?.background_color, data?.shul?.background_image]);
 
   if (loading)
     return <div className="h-screen w-screen bg-black text-[#ffc764] flex items-center justify-center text-xl">Loading…</div>;
@@ -209,9 +228,11 @@ export default function ShulDisplay() {
     zmanim = {},
     limudim = {},
     custom_times = [],
+    custom_texts = [],
     zmanim_display_names = {},
     limudim_display_names = {},
-    calendar_display_names = {}
+    calendar_display_names = {},
+    layout = null
   } = data;
 
   // Helper function to get value from layout item
@@ -229,6 +250,14 @@ export default function ShulDisplay() {
       value = limudim[name];
     } else if (type === 'calendar') {
       value = data.jewish_calendar?.[name];
+    } else if (type === 'customtext') {
+      // Handle custom texts
+      const customText = custom_texts.find(ct => ct.internal_name === name);
+      if (customText) {
+        // Return a special object to mark this as custom text
+        return { _customText: customText };
+      }
+      return null;
     } else {
       // Handle custom times - they might not have prefix
       const customTime = custom_times.find(ct => ct.internal_name === item.id || ct.internal_name === name);
@@ -271,24 +300,56 @@ export default function ShulDisplay() {
   // Map layout boxes to display data
   const shabbosTimes = layout?.box1?.items?.map(item => {
     const value = getItemValue(item);
+    // Check if it's a custom text
+    if (value && value._customText) {
+      const ct = value._customText;
+      if (ct.text_type === 'divider') {
+        return { isDivider: true, dividerColor: ct.font_color };
+      }
+      return { isCustomText: true, label: ct.display_name, text: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color };
+    }
     const formatted = formatValue(value, true, item.name);
     return formatted ? { time: formatted, label: getDisplayName(item) } : null;
   }).filter(Boolean) || [];
 
   const weekdayTimes = layout?.box2?.items?.map(item => {
     const value = getItemValue(item);
+    // Check if it's a custom text
+    if (value && value._customText) {
+      const ct = value._customText;
+      if (ct.text_type === 'divider') {
+        return { isDivider: true, dividerColor: ct.font_color };
+      }
+      return { isCustomText: true, label: ct.display_name, text: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color };
+    }
     const formatted = formatValue(value, true, item.name);
     return formatted ? { time: formatted, label: getDisplayName(item) } : null;
   }).filter(Boolean) || [];
 
   const dlRows = layout?.box3?.items?.map(item => {
     const value = getItemValue(item);
+    // Check if it's a custom text
+    if (value && value._customText) {
+      const ct = value._customText;
+      if (ct.text_type === 'divider') {
+        return { isDivider: true, dividerColor: ct.font_color };
+      }
+      return { isCustomText: true, label: ct.display_name, value: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color };
+    }
     const formatted = formatValue(value, false);
     return formatted ? { label: getDisplayName(item), value: formatted } : null;
   }).filter(Boolean) || [];
 
   const box4Items = layout?.box4?.items?.map(item => {
     const value = getItemValue(item);
+    // Check if it's a custom text
+    if (value && value._customText) {
+      const ct = value._customText;
+      if (ct.text_type === 'divider') {
+        return { isDivider: true, dividerColor: ct.font_color };
+      }
+      return { isCustomText: true, label: ct.display_name, value: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color };
+    }
     const formatted = formatValue(value, false);
     return formatted ? { label: getDisplayName(item), value: formatted } : null;
   }).filter(Boolean) || [];
@@ -305,23 +366,64 @@ export default function ShulDisplay() {
   const box1Name = layout?.box1?.displayName || 'Shabbos Times';
   const box2Name = layout?.box2?.displayName || 'Weekday Times';
 
-  const ilui = Array.isArray(data.iluiy_neshamos) ? data.iluiy_neshamos : [
-    "אסתר ריבה בת מאיר",
-    "משה לעזר בן אברהם יצחק",
-    "משה בן דוד",
-    "חיים יעקב בן משה",
-    "הרה״ג בנימין אשר בן דוב בער",
-    "הרה״ג שלמה בן חיים זאב",
-    "משה לעזר בן אברהם יצחק"
-  ];
-  const refuah = Array.isArray(data.refuah_shleima) ? data.refuah_shleima : [
-    "נסים בת שרה"
-  ];
+  // Get outline color for all boxes (default gold)
+  const outlineColor = shul.boxes_outline_color || '#d4af37';
+  // Get background color for all boxes (default transparent)
+  const boxesBackgroundColor = shul.boxes_background_color || '';
+
+  // Get header colors
+  const headerTextColor = shul.header_text_color || '#ffc764';
+  const headerBgColor = shul.header_bg_color || '#162A45';
+
+  // Get box styling from shul settings
+  const box1TitleStyle = {
+    fontFamily: shul.box1_title_font || 'Arial',
+    color: shul.box1_title_color || '#ffc764'
+  };
+  const box1TextStyle = {
+    fontFamily: shul.box1_text_font || 'Arial',
+    color: shul.box1_text_color || '#ffc764',
+    fontSize: `${shul.box1_text_size || 22}px`
+  };
+  const box2TitleStyle = {
+    fontFamily: shul.box2_title_font || 'Arial',
+    color: shul.box2_title_color || '#ffc764'
+  };
+  const box2TextStyle = {
+    fontFamily: shul.box2_text_font || 'Arial',
+    color: shul.box2_text_color || '#ffc764',
+    fontSize: `${shul.box2_text_size || 22}px`
+  };
+  const box3TextStyle = {
+    fontFamily: shul.box3_text_font || 'Arial',
+    color: shul.box3_text_color || '#ffc764',
+    fontSize: `${shul.box3_text_size || 18}px`
+  };
+  const box4TextStyle = {
+    fontFamily: shul.box4_text_font || 'Arial',
+    color: shul.box4_text_color || '#ffc764',
+    fontSize: `${shul.box4_text_size || 18}px`
+  };
+
+  // Get memorial boxes from shul database (editable by master admin only)
+  const ilui = Array.isArray(shul.ilui_nishmat) && shul.ilui_nishmat.length > 0
+    ? shul.ilui_nishmat
+    : [];
+  const refuah = Array.isArray(shul.refuah_shleima) && shul.refuah_shleima.length > 0
+    ? shul.refuah_shleima
+    : [];
+
+  // Center box text style - uses box1 font and color but hardcoded size
+  const centerBoxTextStyle = {
+    fontFamily: shul.box1_text_font || 'Arial',
+    color: shul.box1_text_color || '#ffc764',
+    fontSize: '18px'
+  };
 
   return (
     <div className="h-screen w-full text-amber-50 overflow-hidden flex flex-col" style={bgStyle}>
       {/* Top strip */}
-      <div className="w-full bg-[#162A45]/95 text-amber-100 flex-shrink-0">
+      <div className="w-full flex-shrink-0" style={{ backgroundColor: headerBgColor, color: headerTextColor, opacity: 0.95, borderBottom: `2px solid ${outlineColor}` }}>
         <div className="mx-auto max-w-[1600px] px-6">
           <div className="grid grid-cols-3 items-center py-3 text-[20px]">
             <div className="text-left">{longDate}</div>
@@ -339,50 +441,74 @@ export default function ShulDisplay() {
           {/* LEFT COLUMN */}
           <div className="">
             {/* Tall Shabbos panel */}
-            <div className="relative rounded-xl border-[3px] border-[#d4af37] h-[600px] p-8 flex flex-col overflow-hidden">
-              <div className="mx-auto w-fit px-6 py-2 rounded-lg border-[3px] border-[#d4af37] bg-[#162A45]/90 text-center text-amber-100 text-[24px] font-semibold mb-4">{box1Name}</div>
+            <div className="relative rounded-xl border-[3px] h-[600px] p-8 flex flex-col overflow-hidden" style={{ borderColor: outlineColor, backgroundColor: boxesBackgroundColor || 'transparent' }}>
+              <div className="mx-auto w-fit px-6 py-2 rounded-lg border-[3px] text-center text-[24px] font-semibold mb-4" style={{ borderColor: outlineColor, backgroundColor: headerBgColor, opacity: 0.9, ...box1TitleStyle }}>{box1Name}</div>
               <div className="mb-3 text-center" dir="rtl">
                 <div className="text-[44px] font-bold whitespace-nowrap">{parsha}</div>
               </div>
               <AutoScrollContainer className="mt-4 space-y-3 flex-1">
-                {shabbosTimes.map((r, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_auto_1fr] text-amber-100 text-[22px]">
-                    {isHebrewLanguage ? (
-                      <>
-                        <div className="text-left tabular-nums whitespace-nowrap">{r.time}</div>
-                        <div className="mx-3" />
-                        <div className="text-right whitespace-nowrap" dir="rtl">{r.label}</div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-left whitespace-nowrap">{r.label}</div>
-                        <div className="mx-3" />
-                        <div className="text-right tabular-nums whitespace-nowrap">{r.time}</div>
-                      </>
-                    )}
-                  </div>
-                ))}
+                {shabbosTimes.map((r, i) => {
+                  if (r.isDivider) {
+                    return <hr key={i} className="border-t-2 my-2" style={{ borderColor: r.dividerColor || 'rgba(251, 191, 36, 0.3)' }} />;
+                  }
+                  if (r.isCustomText) {
+                    return (
+                      <div key={i} className="text-center break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box1TextStyle.fontSize, color: r.fontColor || box1TextStyle.color, fontFamily: box1TextStyle.fontFamily }}>
+                        {r.text}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={i} className="grid grid-cols-[1fr_auto_1fr]" style={box1TextStyle}>
+                      {isHebrewLanguage ? (
+                        <>
+                          <div className="text-left tabular-nums whitespace-nowrap">{r.time}</div>
+                          <div className="mx-3" />
+                          <div className="text-right whitespace-nowrap" dir="rtl">{r.label}</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-left whitespace-nowrap">{r.label}</div>
+                          <div className="mx-3" />
+                          <div className="text-right tabular-nums whitespace-nowrap">{r.time}</div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
               </AutoScrollContainer>
             </div>
 
             {/* Bottom-left small — reference size (we apply the SAME height everywhere) */}
-            <div className={`mt-6 rounded-xl border-[3px] border-[#d4af37] p-6 ${SMALL_BOX_H} flex flex-col`}>
+            <div className={`mt-6 rounded-xl border-[3px] p-6 ${SMALL_BOX_H} flex flex-col`} style={{ borderColor: outlineColor, backgroundColor: boxesBackgroundColor || 'transparent' }}>
               <AutoScrollContainer className="space-y-2 flex-1">
-                {dlRows.length ? dlRows.map((r, i) => (
-                  <div key={i} className="grid grid-cols-2 text-amber-100 text-[18px]">
-                    {isHebrewLanguage ? (
-                      <>
-                        <div className="text-left pl-2 tabular-nums whitespace-nowrap">{r.value}</div>
-                        <div className="text-right pr-2 whitespace-nowrap" dir="rtl">{r.label}</div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-left pl-2 whitespace-nowrap">{r.label}</div>
-                        <div className="text-right pr-2 tabular-nums whitespace-nowrap">{r.value}</div>
-                      </>
-                    )}
-                  </div>
-                )) : <div className="text-center text-amber-200/70">—</div>}
+                {dlRows.length ? dlRows.map((r, i) => {
+                  if (r.isDivider) {
+                    return <hr key={i} className="border-t-2 my-2" style={{ borderColor: r.dividerColor || 'rgba(251, 191, 36, 0.3)' }} />;
+                  }
+                  if (r.isCustomText) {
+                    return (
+                      <div key={i} className="text-center break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box3TextStyle.fontSize, color: r.fontColor || box3TextStyle.color, fontFamily: box3TextStyle.fontFamily }}>
+                        {r.value}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={i} className="grid grid-cols-2" style={box3TextStyle}>
+                      {isHebrewLanguage ? (
+                        <>
+                          <div className="text-left pl-2 tabular-nums whitespace-nowrap">{r.value}</div>
+                          <div className="text-right pr-2 whitespace-nowrap" dir="rtl">{r.label}</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-left pl-2 whitespace-nowrap">{r.label}</div>
+                          <div className="text-right pr-2 tabular-nums whitespace-nowrap">{r.value}</div>
+                        </>
+                      )}
+                    </div>
+                  );
+                }) : null}
               </AutoScrollContainer>
             </div>
           </div>
@@ -418,18 +544,18 @@ export default function ShulDisplay() {
             </div>
             <div className="grid grid-cols-2 gap-6 mt-4">
               <div>
-                <div className="text-center text-amber-200 mb-2" dir="rtl">לעילוי נשמת</div>
-                <div className={`rounded-xl border-[3px] border-[#d4af37] p-6 ${SMALL_BOX_H} flex flex-col`}>
+                <div className="text-center mb-2 text-[20px]" dir="rtl" style={box1TitleStyle}>לעילוי נשמת</div>
+                <div className={`rounded-xl border-[3px] p-6 ${SMALL_BOX_H} flex flex-col`} style={{ borderColor: outlineColor, backgroundColor: boxesBackgroundColor || 'transparent' }}>
                   <AutoScrollContainer className="space-y-2 text-center flex-1" dir="rtl">
-                    {ilui.length ? ilui.map((n, i) => <div key={i} className="whitespace-nowrap">{n}</div>) : <div>—</div>}
+                    {ilui.length ? ilui.map((n, i) => <div key={i} className="whitespace-nowrap" style={centerBoxTextStyle}>{n}</div>) : <div>—</div>}
                   </AutoScrollContainer>
                 </div>
               </div>
               <div>
-                <div className="text-center text-amber-200 mb-2" dir="rtl">רפואה שלמה</div>
-                <div className={`rounded-xl border-[3px] border-[#d4af37] p-6 ${SMALL_BOX_H} flex flex-col`}>
+                <div className="text-center mb-2 text-[20px]" dir="rtl" style={box1TitleStyle}>רפואה שלמה</div>
+                <div className={`rounded-xl border-[3px] p-6 ${SMALL_BOX_H} flex flex-col`} style={{ borderColor: outlineColor, backgroundColor: boxesBackgroundColor || 'transparent' }}>
                   <AutoScrollContainer className="space-y-2 text-center flex-1" dir="rtl">
-                    {refuah.length ? refuah.map((n, i) => <div key={i} className="whitespace-nowrap">{n}</div>) : <div>—</div>}
+                    {refuah.length ? refuah.map((n, i) => <div key={i} className="whitespace-nowrap" style={centerBoxTextStyle}>{n}</div>) : <div>—</div>}
                   </AutoScrollContainer>
                 </div>
               </div>
@@ -439,47 +565,71 @@ export default function ShulDisplay() {
           {/* RIGHT COLUMN */}
           <div className="">
             {/* Tall Weekday panel */}
-            <div className="relative rounded-xl border-[3px] border-[#d4af37] h-[600px] p-8 flex flex-col overflow-hidden">
-              <div className="mx-auto w-fit px-6 py-2 rounded-lg border-[3px] border-[#d4af37] bg-[#162A45]/90 text-center text-amber-100 text-[24px] font-semibold mb-4">{box2Name}</div>
+            <div className="relative rounded-xl border-[3px] h-[600px] p-8 flex flex-col overflow-hidden" style={{ borderColor: outlineColor, backgroundColor: boxesBackgroundColor || 'transparent' }}>
+              <div className="mx-auto w-fit px-6 py-2 rounded-lg border-[3px] text-center text-[24px] font-semibold mb-4" style={{ borderColor: outlineColor, backgroundColor: headerBgColor, opacity: 0.9, ...box2TitleStyle }}>{box2Name}</div>
               <AutoScrollContainer className="mt-6 space-y-3 flex-1">
-                {weekdayTimes.map((r, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_auto_1fr] text-amber-100 text-[22px]">
-                    {isHebrewLanguage ? (
-                      <>
-                        <div className="text-left tabular-nums whitespace-nowrap">{r.time}</div>
-                        <div className="mx-3" />
-                        <div className="text-right whitespace-nowrap" dir="rtl">{r.label}</div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-left whitespace-nowrap">{r.label}</div>
-                        <div className="mx-3" />
-                        <div className="text-right tabular-nums whitespace-nowrap">{r.time}</div>
-                      </>
-                    )}
-                  </div>
-                ))}
+                {weekdayTimes.map((r, i) => {
+                  if (r.isDivider) {
+                    return <hr key={i} className="border-t-2 my-2" style={{ borderColor: r.dividerColor || 'rgba(251, 191, 36, 0.3)' }} />;
+                  }
+                  if (r.isCustomText) {
+                    return (
+                      <div key={i} className="text-center break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box2TextStyle.fontSize, color: r.fontColor || box2TextStyle.color, fontFamily: box2TextStyle.fontFamily }}>
+                        {r.text}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={i} className="grid grid-cols-[1fr_auto_1fr]" style={box2TextStyle}>
+                      {isHebrewLanguage ? (
+                        <>
+                          <div className="text-left tabular-nums whitespace-nowrap">{r.time}</div>
+                          <div className="mx-3" />
+                          <div className="text-right whitespace-nowrap" dir="rtl">{r.label}</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-left whitespace-nowrap">{r.label}</div>
+                          <div className="mx-3" />
+                          <div className="text-right tabular-nums whitespace-nowrap">{r.time}</div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
               </AutoScrollContainer>
             </div>
 
             {/* Bottom-right small — now same size as bottom-left */}
-            <div className={`mt-6 rounded-xl border-[3px] border-[#d4af37] p-6 ${SMALL_BOX_H} flex flex-col`}>
+            <div className={`mt-6 rounded-xl border-[3px] p-6 ${SMALL_BOX_H} flex flex-col`} style={{ borderColor: outlineColor, backgroundColor: boxesBackgroundColor || 'transparent' }}>
               <AutoScrollContainer className="space-y-2 flex-1">
-                {box4Items.length ? box4Items.map((r, i) => (
-                  <div key={i} className="grid grid-cols-2 text-amber-100 text-[18px]">
-                    {isHebrewLanguage ? (
-                      <>
-                        <div className="text-left pl-2 tabular-nums whitespace-nowrap">{r.value}</div>
-                        <div className="text-right pr-2 whitespace-nowrap" dir="rtl">{r.label}</div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-left pl-2 whitespace-nowrap">{r.label}</div>
-                        <div className="text-right pr-2 tabular-nums whitespace-nowrap">{r.value}</div>
-                      </>
-                    )}
-                  </div>
-                )) : <div className="text-center text-amber-200/70">—</div>}
+                {box4Items.length ? box4Items.map((r, i) => {
+                  if (r.isDivider) {
+                    return <hr key={i} className="border-t-2 my-2" style={{ borderColor: r.dividerColor || 'rgba(251, 191, 36, 0.3)' }} />;
+                  }
+                  if (r.isCustomText) {
+                    return (
+                      <div key={i} className="text-center break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box4TextStyle.fontSize, color: r.fontColor || box4TextStyle.color, fontFamily: box4TextStyle.fontFamily }}>
+                        {r.value}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={i} className="grid grid-cols-2" style={box4TextStyle}>
+                      {isHebrewLanguage ? (
+                        <>
+                          <div className="text-left pl-2 tabular-nums whitespace-nowrap">{r.value}</div>
+                          <div className="text-right pr-2 whitespace-nowrap" dir="rtl">{r.label}</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-left pl-2 whitespace-nowrap">{r.label}</div>
+                          <div className="text-right pr-2 tabular-nums whitespace-nowrap">{r.value}</div>
+                        </>
+                      )}
+                    </div>
+                  );
+                }) : null}
               </AutoScrollContainer>
             </div>
           </div>
@@ -487,7 +637,7 @@ export default function ShulDisplay() {
       </div>
 
       {/* Footer strip */}
-      <div className="fixed bottom-0 left-0 right-0 text-center text-[14px] text-amber-200/90 bg-[#162A45]/90 py-1">
+      <div className="fixed bottom-0 left-0 right-0 text-center text-[14px] text-amber-200/90 py-1" style={{ backgroundColor: headerBgColor, borderTop: `2px solid ${outlineColor}` }}>
         If you want this for your shul too, sign up for free at shulschedule.com
       </div>
     </div>

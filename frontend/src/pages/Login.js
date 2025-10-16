@@ -125,11 +125,11 @@ function Login() {
             {/* Registration Link */}
             <Typography align="center" className="mt-4">
               Don't have an account?{' '}
-              <Link 
-                to="/register" 
+              <Link
+                to="/register"
                 className="text-blue-600 hover:text-blue-800 font-medium"
               >
-                Register your synagogue
+                Request access
               </Link>
             </Typography>
           </form>

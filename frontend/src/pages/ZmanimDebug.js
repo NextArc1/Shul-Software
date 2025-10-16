@@ -329,7 +329,7 @@ function ZmanimDebug() {
 
   return (
     <div style={{ padding: '20px', maxWidth: '100%', overflow: 'auto' }}>
-      <h1>Zmanim Debug - ALL Fields (64 total!)</h1>
+      <h1>Future Zmanim - ALL Fields (64 total!)</h1>
 
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
         <label>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ReactSortable } from "react-sortablejs";
 import ZmanimUpdater from '../components/ZmanimUpdater';
 import CustomTimes from '../components/CustomTimes';
+import CustomText from '../components/CustomText';
 import { api } from '../utils/api';
 
 const styles = {
@@ -12,7 +13,7 @@ const styles = {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
   },
   header: {
-    background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+    background: 'linear-gradient(135deg, #162A45 0%, #1e3a5f 100%)',
     color: 'white',
     padding: '30px 40px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -110,7 +111,7 @@ const styles = {
   },
   itemHover: {
     backgroundColor: '#f0f4f8',
-    borderColor: '#d4af37',
+    border: '1px solid #d4af37',
     transform: 'translateY(-1px)',
     boxShadow: '0 2px 4px rgba(0,0,0,0.08)'
   },
@@ -371,8 +372,14 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   );
 };
 
-const Box = ({ id, name, items, setItems, onNameChange, group, canEditName, onRemoveItem, renderItemActions }) => {
+const Box = ({ id, name, items, setItems, onNameChange, group, canEditName, onRemoveItem, renderItemActions, styling, onStylingChange }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [stylingExpanded, setStylingExpanded] = useState(false);
+
+  const fontOptions = ['Arial', 'Times New Roman', 'Georgia', 'Courier New', 'Verdana', 'Trebuchet MS', 'Impact', 'Palatino', 'Garamond', 'Helvetica'];
+
+  // Determine if this box has title styling (box1 and box2)
+  const hasTitleStyling = id === 'box1' || id === 'box2';
 
   return (
     <div
@@ -383,6 +390,162 @@ const Box = ({ id, name, items, setItems, onNameChange, group, canEditName, onRe
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Styling controls */}
+      {canEditName && styling && (
+        <div style={{
+          marginBottom: '15px',
+          backgroundColor: '#ffffff',
+          borderRadius: '8px',
+          border: '1px solid #e5e7eb',
+          overflow: 'hidden'
+        }}>
+          {/* Toggle button */}
+          <button
+            type="button"
+            onClick={() => setStylingExpanded(!stylingExpanded)}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              backgroundColor: '#f9fafb',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '13px',
+              fontWeight: '500',
+              color: '#374151',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#f9fafb'}
+          >
+            <span>🎨 Customize Appearance</span>
+            <span style={{ fontSize: '10px' }}>{stylingExpanded ? '▲' : '▼'}</span>
+          </button>
+
+          {/* Expanded styling panel */}
+          {stylingExpanded && (
+            <div style={{ padding: '16px', backgroundColor: '#ffffff' }}>
+              {hasTitleStyling && (
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    marginBottom: '10px',
+                    color: '#6b7280',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    Title Style
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <div style={{ flex: 1 }}>
+                      <select
+                        value={styling[`${id}_title_font`]}
+                        onChange={(e) => onStylingChange(`${id}_title_font`, e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          fontSize: '13px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '6px',
+                          backgroundColor: '#ffffff',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {fontOptions.map(font => <option key={font} value={font}>{font}</option>)}
+                      </select>
+                    </div>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="color"
+                        value={styling[`${id}_title_color`]}
+                        onChange={(e) => onStylingChange(`${id}_title_color`, e.target.value)}
+                        style={{
+                          width: '50px',
+                          height: '38px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          padding: '2px'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <div style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  marginBottom: '10px',
+                  color: '#6b7280',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Content Style
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ flex: 1 }}>
+                    <select
+                      value={styling[`${id}_text_font`]}
+                      onChange={(e) => onStylingChange(`${id}_text_font`, e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 10px',
+                        fontSize: '13px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px',
+                        backgroundColor: '#ffffff',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {fontOptions.map(font => <option key={font} value={font}>{font}</option>)}
+                    </select>
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="color"
+                      value={styling[`${id}_text_color`]}
+                      onChange={(e) => onStylingChange(`${id}_text_color`, e.target.value)}
+                      style={{
+                        width: '50px',
+                        height: '38px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        padding: '2px'
+                      }}
+                    />
+                  </div>
+                  <div style={{ width: '70px' }}>
+                    <input
+                      type="number"
+                      value={styling[`${id}_text_size`]}
+                      onChange={(e) => onStylingChange(`${id}_text_size`, parseInt(e.target.value))}
+                      min="8"
+                      max="72"
+                      placeholder="Size"
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        fontSize: '13px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px',
+                        textAlign: 'center',
+                        fontWeight: '500'
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div style={styles.boxHeader}>
         {canEditName ? (
           <input
@@ -466,8 +629,11 @@ const ZmanimSettings = () => {
   const [jewishCalendar, setJewishCalendar] = useState(null);
   const [message, setMessage] = useState('');
   const [editingCustomTime, setEditingCustomTime] = useState(null);
+  const [editingCustomText, setEditingCustomText] = useState(null);
   const [customTimesData, setCustomTimesData] = useState([]);
+  const [customTextsData, setCustomTextsData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('time'); // 'time' or 'text'
   const [boxes, setBoxes] = useState({
     box1: { internalName: 'box1', displayName: 'Shabbos Times', items: [] },
     box2: { internalName: 'box2', displayName: 'Weekday Times', items: [] },
@@ -476,13 +642,41 @@ const ZmanimSettings = () => {
     zmanimAndLimudim: { internalName: 'zmanimAndLimudim', displayName: 'Basic Zmanim', items: [] },
     limudimBox: { internalName: 'limudimBox', displayName: 'Limudim', items: [] },
     jewishCalendar: { internalName: 'jewishCalendar', displayName: 'Jewish Calendar', items: [] },
-    customTimes: { internalName: 'customTimes', displayName: 'Custom Times', items: [] },
+    customTimes: { internalName: 'customTimes', displayName: 'Custom', items: [] },
   });
 
-  // Load layout from database on mount
+  // Box styling state
+  const [boxStyling, setBoxStyling] = useState({
+    box1_title_font: 'Arial',
+    box1_title_color: '#ffc764',
+    box1_text_font: 'Arial',
+    box1_text_color: '#ffc764',
+    box1_text_size: 22,
+    box2_title_font: 'Arial',
+    box2_title_color: '#ffc764',
+    box2_text_font: 'Arial',
+    box2_text_color: '#ffc764',
+    box2_text_size: 22,
+    box3_text_font: 'Arial',
+    box3_text_color: '#ffc764',
+    box3_text_size: 18,
+    box4_text_font: 'Arial',
+    box4_text_color: '#ffc764',
+    box4_text_size: 18,
+  });
+
+  // Load layout and styling from database on mount
   useEffect(() => {
-    fetchZmanim();
-    loadLayoutFromDatabase();
+    const initializeData = async () => {
+      await fetchZmanim();
+      await loadLayoutFromDatabase();
+      await loadBoxStyling();
+      // Fetch custom times/texts after layout is loaded to avoid race condition
+      await fetchCustomTimes();
+      await fetchCustomTexts();
+    };
+
+    initializeData();
   }, []);
 
   // Load layout configuration from database
@@ -496,6 +690,46 @@ const ZmanimSettings = () => {
     } catch (error) {
       console.error('Error loading layout:', error);
       // If layout doesn't exist, it's okay - we'll use default
+    }
+  };
+
+  // Load box styling from shul settings
+  const loadBoxStyling = async () => {
+    try {
+      const response = await api.get('/shul/');
+      const styling = {};
+      if (response.box1_title_font) styling.box1_title_font = response.box1_title_font;
+      if (response.box1_title_color) styling.box1_title_color = response.box1_title_color;
+      if (response.box1_text_font) styling.box1_text_font = response.box1_text_font;
+      if (response.box1_text_color) styling.box1_text_color = response.box1_text_color;
+      if (response.box1_text_size) styling.box1_text_size = response.box1_text_size;
+      if (response.box2_title_font) styling.box2_title_font = response.box2_title_font;
+      if (response.box2_title_color) styling.box2_title_color = response.box2_title_color;
+      if (response.box2_text_font) styling.box2_text_font = response.box2_text_font;
+      if (response.box2_text_color) styling.box2_text_color = response.box2_text_color;
+      if (response.box2_text_size) styling.box2_text_size = response.box2_text_size;
+      if (response.box3_text_font) styling.box3_text_font = response.box3_text_font;
+      if (response.box3_text_color) styling.box3_text_color = response.box3_text_color;
+      if (response.box3_text_size) styling.box3_text_size = response.box3_text_size;
+      if (response.box4_text_font) styling.box4_text_font = response.box4_text_font;
+      if (response.box4_text_color) styling.box4_text_color = response.box4_text_color;
+      if (response.box4_text_size) styling.box4_text_size = response.box4_text_size;
+
+      if (Object.keys(styling).length > 0) {
+        setBoxStyling(prev => ({ ...prev, ...styling }));
+      }
+    } catch (error) {
+      console.error('Error loading box styling:', error);
+    }
+  };
+
+  // Save box styling to backend
+  const saveBoxStyling = async (field, value) => {
+    try {
+      await api.patch('/shul/', { [field]: value });
+      setBoxStyling(prev => ({ ...prev, [field]: value }));
+    } catch (error) {
+      console.error('Error saving box styling:', error);
     }
   };
 
@@ -525,13 +759,14 @@ const ZmanimSettings = () => {
       const data = await api.get('/zmanim/');
       handleZmanimUpdate(data.zmanim, data.limudim, data.jewish_calendar, null, showSuccessMessage);
     } catch (error) {
-      handleZmanimUpdate(null, null, null, 'Failed to fetch zmanim and limudim', showSuccessMessage);
+      // Silently fail - don't show error message to user
+      handleZmanimUpdate(null, null, null, null, showSuccessMessage);
     }
   };
 
   const handleZmanimUpdate = (zmanimData, limudimData, calendarData, error, showSuccessMessage = false) => {
     if (error) {
-      setMessage(error);
+      // Don't show error messages
       setZmanim(null);
       setLimudim(null);
       setJewishCalendar(null);
@@ -556,12 +791,36 @@ const ZmanimSettings = () => {
     const customTime = customTimesData.find(ct => ct.internal_name === internalName);
     if (customTime) {
       setEditingCustomTime(customTime);
+      setModalType('time');
       setIsModalOpen(true); // Open modal
     }
   };
 
   const handleAddCustomTime = () => {
     setEditingCustomTime(null); // Clear any editing state
+    setModalType('time');
+    setIsModalOpen(true); // Open modal
+  };
+
+  const handleCustomTextCreated = () => {
+    // Refresh the custom texts list from the backend
+    fetchCustomTexts();
+    setEditingCustomText(null); // Clear editing state
+    setIsModalOpen(false); // Close modal
+  };
+
+  const handleEditCustomText = (internalName) => {
+    const customText = customTextsData.find(ct => ct.internal_name === internalName);
+    if (customText) {
+      setEditingCustomText(customText);
+      setModalType('text');
+      setIsModalOpen(true); // Open modal
+    }
+  };
+
+  const handleAddCustomText = () => {
+    setEditingCustomText(null); // Clear any editing state
+    setModalType('text');
     setIsModalOpen(true); // Open modal
   };
 
@@ -612,8 +871,56 @@ const ZmanimSettings = () => {
     }
   };
 
+  const handleDeleteCustomText = async (internalName) => {
+    const customText = customTextsData.find(ct => ct.internal_name === internalName);
+    if (!customText) return;
+
+    // Check which boxes are using this custom text
+    const usedInBoxes = [];
+    ['box1', 'box2', 'box3', 'box4'].forEach((boxKey) => {
+      const box = boxes[boxKey];
+      if (box.items.some(item => item.id === `customtext_${internalName}`)) {
+        usedInBoxes.push(box.displayName);
+      }
+    });
+
+    // Build confirmation message
+    let confirmMessage = `Are you sure you want to delete "${customText.display_name}"?`;
+    if (usedInBoxes.length > 0) {
+      confirmMessage += `\n\nWARNING: This custom text is currently being used in the following display boxes:\n- ${usedInBoxes.join('\n- ')}`;
+      confirmMessage += '\n\nDeleting it will remove it from these boxes.';
+    }
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      await api.delete(`/custom-texts/${customText.id}/`);
+      fetchCustomTexts();
+
+      // Remove from any boxes that were using it
+      if (usedInBoxes.length > 0) {
+        setBoxes(prevBoxes => {
+          const updatedBoxes = { ...prevBoxes };
+          ['box1', 'box2', 'box3', 'box4'].forEach((boxKey) => {
+            updatedBoxes[boxKey] = {
+              ...updatedBoxes[boxKey],
+              items: updatedBoxes[boxKey].items.filter(item => item.id !== `customtext_${internalName}`)
+            };
+          });
+          return updatedBoxes;
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting custom text:', error);
+      alert('Error deleting custom text: ' + (error.message || 'Unknown error'));
+    }
+  };
+
   const handleCancelEdit = () => {
     setEditingCustomTime(null);
+    setEditingCustomText(null);
     setIsModalOpen(false); // Close modal
   };
 
@@ -764,7 +1071,7 @@ const ZmanimSettings = () => {
 
   // Fetch custom times and populate the customTimes box
   const fetchCustomTimes = () => {
-    api.get('/custom-times/')
+    return api.get('/custom-times/')
       .then(data => {
         const customTimes = data || [];
         setCustomTimesData(customTimes); // Store full data for edit/delete
@@ -803,7 +1110,8 @@ const ZmanimSettings = () => {
                 timeInfo,
                 frequencyInfo,
                 description: ct.description,
-                calculated_time: ct.calculated_time ? new Date(ct.calculated_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null
+                calculated_time: ct.calculated_time ? new Date(ct.calculated_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null,
+                itemType: 'customtime' // Mark as custom time for actions
               };
             }),
           },
@@ -814,40 +1122,90 @@ const ZmanimSettings = () => {
       });
   };
 
-  useEffect(() => {
-    fetchCustomTimes();
-  }, []);
+  // Custom times/texts are now fetched in the main initialization useEffect
+  // to avoid race conditions with loadLayoutFromDatabase()
 
-  const renderCustomTimeActions = (item, buttonHovered, setButtonHovered) => (
-    <>
-      <button
-        type="button"
-        onClick={() => handleEditCustomTime(item.id)}
-        style={{
-          ...styles.button,
-          ...styles.editButton,
-          ...(buttonHovered === `edit-${item.id}` ? styles.editButtonHover : {})
-        }}
-        onMouseEnter={() => setButtonHovered(`edit-${item.id}`)}
-        onMouseLeave={() => setButtonHovered(null)}
-      >
-        Edit
-      </button>
-      <button
-        type="button"
-        onClick={() => handleDeleteCustomTime(item.id)}
-        style={{
-          ...styles.button,
-          ...styles.deleteButton,
-          ...(buttonHovered === `delete-${item.id}` ? styles.deleteButtonHover : {})
-        }}
-        onMouseEnter={() => setButtonHovered(`delete-${item.id}`)}
-        onMouseLeave={() => setButtonHovered(null)}
-      >
-        Delete
-      </button>
-    </>
-  );
+  // Fetch custom texts and merge into customTimes box
+  const fetchCustomTexts = () => {
+    return api.get('/custom-texts/')
+      .then(data => {
+        const customTexts = data || [];
+        setCustomTextsData(customTexts); // Store full data for edit/delete
+
+        // Merge with custom times in the box
+        setBoxes(prevBoxes => {
+          const existingCustomTimeItems = prevBoxes.customTimes.items.filter(item =>
+            !item.id.startsWith('customtext_')
+          );
+
+          const customTextItems = customTexts.map(ct => {
+            // Format display info based on type
+            let typeInfo = ct.text_type === 'divider' ? 'Divider' : 'Text';
+            let detailInfo = ct.text_type === 'text' ? `Content: ${ct.text_content.substring(0, 30)}${ct.text_content.length > 30 ? '...' : ''}` : '';
+
+            return {
+              id: `customtext_${ct.internal_name}`,
+              name: ct.display_name,
+              internalName: ct.internal_name,
+              typeInfo,
+              detailInfo,
+              description: ct.description,
+              itemType: 'customtext' // Mark as custom text for actions
+            };
+          });
+
+          return {
+            ...prevBoxes,
+            customTimes: {
+              ...prevBoxes.customTimes,
+              items: [...existingCustomTimeItems, ...customTextItems]
+            }
+          };
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching custom texts:', error);
+      });
+  };
+
+  const renderCustomTimeActions = (item, buttonHovered, setButtonHovered) => {
+    // Determine if this is a custom time or custom text
+    const isCustomText = item.itemType === 'customtext';
+    const handleEdit = isCustomText ? handleEditCustomText : handleEditCustomTime;
+    const handleDelete = isCustomText ? handleDeleteCustomText : handleDeleteCustomTime;
+
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => handleEdit(item.internalName)}
+          style={{
+            ...styles.button,
+            ...styles.editButton,
+            ...(buttonHovered === `edit-${item.id}` ? styles.editButtonHover : {})
+          }}
+          onMouseEnter={() => setButtonHovered(`edit-${item.id}`)}
+          onMouseLeave={() => setButtonHovered(null)}
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={() => handleDelete(item.internalName)}
+          style={{
+            ...styles.button,
+            ...styles.deleteButton,
+            ...(buttonHovered === `delete-${item.id}` ? styles.deleteButtonHover : {})
+          }}
+          onMouseEnter={() => setButtonHovered(`delete-${item.id}`)}
+          onMouseLeave={() => setButtonHovered(null)}
+        >
+          Delete
+        </button>
+      </>
+    );
+  };
+
 
   return (
     <div style={styles.pageContainer}>
@@ -856,9 +1214,6 @@ const ZmanimSettings = () => {
       {/* Header */}
       <div style={styles.header}>
         <h1 style={styles.headerTitle}>Display Settings</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '15px' }}>
-          <ZmanimUpdater onUpdate={handleZmanimUpdate} />
-        </div>
       </div>
 
       {/* Main Content */}
@@ -884,6 +1239,8 @@ const ZmanimSettings = () => {
               onRemoveItem={handleRemoveItem}
               group="shared"
               canEditName={true}
+              styling={boxStyling}
+              onStylingChange={saveBoxStyling}
             />
           ))}
         </div>
@@ -896,7 +1253,29 @@ const ZmanimSettings = () => {
             📋 Available Fields
             <span style={styles.sectionSubtitle}>Drag items to the display boxes above</span>
           </h2>
-          <AddButton onClick={handleAddCustomTime} />
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <AddButton onClick={handleAddCustomTime} />
+            <button
+              onClick={handleAddCustomText}
+              style={{
+                ...styles.addButton,
+                backgroundColor: '#3498db'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#2980b9';
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 4px 8px rgba(52, 152, 219, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#3498db';
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 2px 4px rgba(52, 152, 219, 0.2)';
+              }}
+            >
+              <span style={{ fontSize: '18px' }}>+</span>
+              Add Custom Component
+            </button>
+          </div>
         </div>
         <div style={styles.sourceBoxesGrid}>
           <Box
@@ -940,17 +1319,29 @@ const ZmanimSettings = () => {
 
       </div>
 
-      {/* Modal for Custom Times */}
+      {/* Modal for Custom Times and Custom Texts */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleCancelEdit}
-        title={editingCustomTime ? 'Edit Custom Time' : 'Create Custom Time'}
+        title={
+          modalType === 'time'
+            ? (editingCustomTime ? 'Edit Custom Time' : 'Create Custom Time')
+            : (editingCustomText ? 'Edit Custom Component' : 'Create Custom Component')
+        }
       >
-        <CustomTimes
-          onCustomTimeCreated={handleCustomTimeCreated}
-          editingCustomTime={editingCustomTime}
-          onCancelEdit={handleCancelEdit}
-        />
+        {modalType === 'time' ? (
+          <CustomTimes
+            onCustomTimeCreated={handleCustomTimeCreated}
+            editingCustomTime={editingCustomTime}
+            onCancelEdit={handleCancelEdit}
+          />
+        ) : (
+          <CustomText
+            onCustomTextCreated={handleCustomTextCreated}
+            editingCustomText={editingCustomText}
+            onCancelEdit={handleCancelEdit}
+          />
+        )}
       </Modal>
     </div>
   );

@@ -42,8 +42,13 @@ class ApiService {
         // For other errors, use detail or error message
         throw new Error(errorData.detail || errorData.error || `HTTP error! status: ${response.status}`);
       }
-      
-      // Return JSON response
+
+      // Return JSON response for responses with content
+      // 204 No Content (common for DELETE) has no body to parse
+      if (response.status === 204) {
+        return null;
+      }
+
       return await response.json();
     } catch (error) {
       console.error('API request failed:', error);

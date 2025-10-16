@@ -46,7 +46,7 @@ class Shul(models.Model):
     timezone = models.CharField(max_length=100)
 
     # Display settings
-    language = models.CharField(max_length=20, choices=LANGUAGE_CHOICES, default='s')
+    language = models.CharField(max_length=20, choices=LANGUAGE_CHOICES, default='he')
     time_format = models.CharField(max_length=10, choices=TIME_FORMAT_CHOICES, default='12h')
     show_seconds = models.BooleanField(default=False)
 
