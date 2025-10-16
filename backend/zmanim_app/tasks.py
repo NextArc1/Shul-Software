@@ -185,7 +185,7 @@ Email: {registration.email}
             message,
             settings.DEFAULT_FROM_EMAIL,
             [registration.email],
-            fail_silently=True,
+            fail_silently=False,
         )
         logger.info(f"Confirmation email sent successfully to {registration.email}")
         return f"Email sent to {registration.email}"
@@ -242,7 +242,7 @@ Email: {registration.email}
             message,
             settings.DEFAULT_FROM_EMAIL,
             [registration.email],
-            fail_silently=True,
+            fail_silently=False,
         )
         logger.info(f"Approval email sent successfully to {registration.email}")
         return f"Approval email sent to {registration.email}"
@@ -308,7 +308,7 @@ Display URL: {display_url}
             message,
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
-            fail_silently=True,
+            fail_silently=False,
         )
         logger.info(f"Welcome email sent successfully to {user.email}")
         return f"Welcome email sent to {user.email}"

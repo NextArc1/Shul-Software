@@ -34,14 +34,80 @@ import datetime
 logger = logging.getLogger(__name__)
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """Health check endpoint for Docker and monitoring"""
+    from django.db import connection
+    from django.core.cache import cache
+
+    health_status = {
+        'status': 'healthy',
+        'timestamp': timezone.now().isoformat(),
+        'checks': {}
+    }
+
+    # Check database connectivity
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        health_status['checks']['database'] = 'ok'
+    except Exception as e:
+        health_status['status'] = 'unhealthy'
+        health_status['checks']['database'] = f'error: {str(e)}'
+        logger.error(f"Health check database failed: {e}")
+
+    # Check Redis connectivity
+    try:
+        cache.set('health_check', 'ok', 10)
+        if cache.get('health_check') == 'ok':
+            health_status['checks']['redis'] = 'ok'
+        else:
+            health_status['checks']['redis'] = 'error: cache write/read failed'
+            health_status['status'] = 'unhealthy'
+    except Exception as e:
+        health_status['status'] = 'unhealthy'
+        health_status['checks']['redis'] = f'error: {str(e)}'
+        logger.error(f"Health check redis failed: {e}")
+
+    # Return 200 if healthy, 503 if unhealthy
+    status_code = status.HTTP_200_OK if health_status['status'] == 'healthy' else status.HTTP_503_SERVICE_UNAVAILABLE
+    return Response(health_status, status=status_code)
+
+
 def fetch_timezone_by_coordinates(latitude, longitude):
-    """Fetch timezone by coordinates"""
+    """Fetch timezone by coordinates with retry logic and timeout"""
     api_url = f"https://timeapi.io/api/TimeZone/coordinate?latitude={latitude}&longitude={longitude}"
-    response = requests.get(api_url)
-    if response.status_code == 200:
-        data = response.json()
-        if 'timeZone' in data:
-            return data['timeZone']
+
+    max_retries = 3
+    timeout = 10  # seconds
+
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(api_url, timeout=timeout)
+            if response.status_code == 200:
+                data = response.json()
+                if 'timeZone' in data:
+                    return data['timeZone']
+            elif response.status_code >= 500:
+                # Server error, retry
+                logger.warning(f"Timezone API returned {response.status_code}, attempt {attempt + 1}/{max_retries}")
+                if attempt < max_retries - 1:
+                    continue
+            else:
+                # Client error, don't retry
+                logger.error(f"Timezone API returned {response.status_code}: {response.text}")
+                return None
+        except requests.exceptions.Timeout:
+            logger.warning(f"Timezone API timeout, attempt {attempt + 1}/{max_retries}")
+            if attempt < max_retries - 1:
+                continue
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Timezone API request failed: {e}, attempt {attempt + 1}/{max_retries}")
+            if attempt < max_retries - 1:
+                continue
+
+    logger.error(f"Failed to fetch timezone after {max_retries} attempts")
     return None
 
 
