@@ -3,6 +3,8 @@ from datetime import date, timedelta
 import logging
 from .models import Shul, DailyZmanim
 from .zmanim_calculator import ZmanimCalculator
+from django.core.mail import send_mail
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -140,3 +142,183 @@ def recalculate_shul_zmanim(shul_id, from_date=None):
     except Shul.DoesNotExist:
         logger.error(f"Shul {shul_id} not found")
         return f"Shul {shul_id} not found"
+
+
+# ========== EMAIL TASKS (Async to prevent blocking) ==========
+
+@shared_task
+def send_registration_confirmation_email(registration_id):
+    """
+    Send confirmation email after registration request is submitted.
+    Runs asynchronously to avoid blocking the HTTP response.
+    """
+    from .models import PendingRegistration
+
+    try:
+        registration = PendingRegistration.objects.get(id=registration_id)
+
+        subject = 'Registration Request Received - Shul Schedule'
+        message = f"""Hello {registration.contact_name},
+
+Thank you for your interest in Shul Schedule!
+
+We have received your registration request for {registration.organization_name} and are currently reviewing it. We carefully review each application to ensure the quality of our service.
+
+What happens next?
+• We will review your request within 1-2 business days
+• If approved, you'll receive an email with a link to complete your account setup
+• Once your account is created, you can immediately start using the scheduling software
+
+Best regards,
+Shua P
+Shul Schedule
+
+---
+Request Details:
+Organization: {registration.organization_name}
+Contact: {registration.contact_name}
+Email: {registration.email}
+"""
+
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [registration.email],
+            fail_silently=True,
+        )
+        logger.info(f"Confirmation email sent successfully to {registration.email}")
+        return f"Email sent to {registration.email}"
+
+    except PendingRegistration.DoesNotExist:
+        logger.error(f"Registration {registration_id} not found")
+        return f"Registration {registration_id} not found"
+    except Exception as e:
+        logger.error(f"Failed to send confirmation email for registration {registration_id}: {e}")
+        return f"Failed: {str(e)}"
+
+
+@shared_task
+def send_approval_email(registration_id):
+    """
+    Send approval email with registration link.
+    Runs asynchronously to avoid blocking the HTTP response.
+    """
+    from .models import PendingRegistration
+
+    try:
+        registration = PendingRegistration.objects.get(id=registration_id)
+
+        registration_url = f"{settings.SITE_URL}/register/complete/{registration.approval_token}"
+
+        subject = 'Shul Schedule Registration - Next Steps'
+        message = f"""Hello {registration.contact_name},
+
+Thank you for your interest in Shul Schedule. Your registration request for
+  {registration.organization_name} has been approved.
+
+  To complete your account setup, please visit:
+  {registration_url}
+
+  This setup link will expire in 7 days. Once you complete the setup, you will be able to:
+
+  • Customize your display settings and appearance
+  • Set your location for accurate zmanim calculations
+  • Add custom times and announcements
+  • Access your unique display URL
+
+Best regards,
+Shua P
+Shul Schedule
+
+---
+Organization: {registration.organization_name}
+Contact: {registration.contact_name}
+Email: {registration.email}
+"""
+
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [registration.email],
+            fail_silently=True,
+        )
+        logger.info(f"Approval email sent successfully to {registration.email}")
+        return f"Approval email sent to {registration.email}"
+
+    except PendingRegistration.DoesNotExist:
+        logger.error(f"Registration {registration_id} not found")
+        return f"Registration {registration_id} not found"
+    except Exception as e:
+        logger.error(f"Failed to send approval email for registration {registration_id}: {e}")
+        return f"Failed: {str(e)}"
+
+
+@shared_task
+def send_welcome_email(user_id, shul_id):
+    """
+    Send welcome email after account creation.
+    Runs asynchronously to avoid blocking the HTTP response.
+    """
+    from django.contrib.auth import get_user_model
+    from .models import Shul
+
+    User = get_user_model()
+
+    try:
+        user = User.objects.get(id=user_id)
+        shul = Shul.objects.get(id=shul_id)
+
+        display_url = f"{settings.SITE_URL}/display/{shul.slug}"
+        dashboard_url = f"{settings.SITE_URL}/setup"
+
+        subject = 'Welcome to Shul Schedule!'
+        message = f"""Hello {user.email},
+
+Welcome to Shul Schedule! Your account has been successfully created.
+
+Your display is now live and ready to customize:
+🔗 Display URL: {display_url}
+
+Next Steps:
+1. Complete your setup in the dashboard: {dashboard_url}
+2. Set your location (zip code) for accurate zmanim
+3. Customize your display appearance
+4. Add custom times and texts if needed
+
+Getting Started Tips:
+• We recommend using a PC with a screen or monitor for optimal viewing
+• All zmanim are calculated automatically based on your location
+• You can customize colors, fonts, and layout in the Settings
+
+Best regards,
+Shua P
+Shul Schedule
+
+---
+Account Details:
+Organization: {shul.name}
+Email: {user.email}
+Display URL: {display_url}
+"""
+
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=True,
+        )
+        logger.info(f"Welcome email sent successfully to {user.email}")
+        return f"Welcome email sent to {user.email}"
+
+    except User.DoesNotExist:
+        logger.error(f"User {user_id} not found")
+        return f"User {user_id} not found"
+    except Shul.DoesNotExist:
+        logger.error(f"Shul {shul_id} not found")
+        return f"Shul {shul_id} not found"
+    except Exception as e:
+        logger.error(f"Failed to send welcome email for user {user_id}: {e}")
+        return f"Failed: {str(e)}"

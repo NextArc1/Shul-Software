@@ -1119,44 +1119,10 @@ def submit_registration_request(request):
     if serializer.is_valid():
         registration = serializer.save()
 
-        # Send confirmation email immediately
-        from django.core.mail import send_mail
-        from django.conf import settings
-
-        subject = 'Registration Request Received - Shul Schedule'
-        message = f"""Hello {registration.contact_name},
-
-Thank you for your interest in Shul Schedule!
-
-We have received your registration request for {registration.organization_name} and are currently reviewing it. We carefully review each application to ensure the quality of our service.
-
-What happens next?
-• We will review your request within 1-2 business days
-• If approved, you'll receive an email with a link to complete your account setup
-• Once your account is created, you can immediately start using the scheduling software
-
-Best regards,
-Shua P
-Shul Schedule
-
----
-Request Details:
-Organization: {registration.organization_name}
-Contact: {registration.contact_name}
-Email: {registration.email}
-"""
-
-        try:
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [registration.email],
-                fail_silently=True,  # Don't fail registration if email fails
-            )
-            logger.info(f"Confirmation email sent successfully to {registration.email}")
-        except Exception as e:
-            logger.error(f"Failed to send confirmation email: {e}")
+        # Send confirmation email asynchronously (non-blocking)
+        from .tasks import send_registration_confirmation_email
+        send_registration_confirmation_email.delay(registration.id)
+        logger.info(f"Registration confirmation email task queued for {registration.email}")
 
         return Response({
             'message': 'Registration request submitted successfully! We will review it and send you an email shortly.',
@@ -1200,62 +1166,15 @@ def approve_registration(request, registration_id):
     registration.token_expires_at = timezone.now() + timedelta(days=7)
     registration.save()
 
-    # Send approval email
-    from django.core.mail import send_mail
-    from django.conf import settings
+    # Send approval email asynchronously (non-blocking)
+    from .tasks import send_approval_email
+    send_approval_email.delay(registration.id)
+    logger.info(f"Approval email task queued for {registration.email}")
 
-    registration_url = f"{settings.SITE_URL}/register/complete/{registration.approval_token}"
-
-    subject = 'Shul Schedule Registration - Next Steps'
-
-    # Formal tone with setup link
-    message = f"""Hello {registration.contact_name},
-
-Thank you for your interest in Shul Schedule. Your registration request for
-  {registration.organization_name} has been approved.
-
-  To complete your account setup, please visit:
-  {registration_url}
-
-  This setup link will expire in 7 days. Once you complete the setup, you will be able to:
-
-  • Customize your display settings and appearance
-  • Set your location for accurate zmanim calculations
-  • Add custom times and announcements
-  • Access your unique display URL
-
-Best regards,
-Shua P
-Shul Schedule
-
----
-Organization: {registration.organization_name}
-Contact: {registration.contact_name}
-Email: {registration.email}
-"""
-
-    try:
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [registration.email],
-            fail_silently=False,
-        )
-
-        logger.info(f"Approval email sent successfully to {registration.email}")
-
-        return Response({
-            'message': 'Registration approved and email sent successfully',
-            'registration': PendingRegistrationSerializer(registration).data
-        })
-    except Exception as e:
-        logger.error(f"Failed to send approval email: {e}")
-        return Response({
-            'message': 'Registration approved but email failed to send',
-            'error': str(e),
-            'registration': PendingRegistrationSerializer(registration).data
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return Response({
+        'message': 'Registration approved and email will be sent shortly',
+        'registration': PendingRegistrationSerializer(registration).data
+    })
 
 
 @api_view(['POST'])
@@ -1376,53 +1295,10 @@ def complete_registration(request):
         # Create auth token
         token, created = Token.objects.get_or_create(user=user)
 
-        # Send welcome email
-        from django.core.mail import send_mail
-        from django.conf import settings
-
-        display_url = f"{settings.SITE_URL}/display/{shul.slug}"
-        dashboard_url = f"{settings.SITE_URL}/setup"
-
-        subject = 'Welcome to Shul Schedule!'
-        message = f"""Hello {user.email},
-
-Welcome to Shul Schedule! Your account has been successfully created.
-
-Your display is now live and ready to customize:
-🔗 Display URL: {display_url}
-
-Next Steps:
-1. Complete your setup in the dashboard: {dashboard_url}
-2. Set your location (zip code) for accurate zmanim
-3. Customize your display appearance
-4. Add custom times and texts if needed
-
-Getting Started Tips:
-• We recommend using a PC with a screen or monitor for optimal viewing
-• All zmanim are calculated automatically based on your location
-• You can customize colors, fonts, and layout in the Settings
-
-Best regards,
-Shua P
-Shul Schedule
-
----
-Account Details:
-Organization: {shul.name}
-Email: {user.email}
-Display URL: {display_url}
-"""
-
-        try:
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=True,  # Don't fail account creation if email fails
-            )
-        except Exception as e:
-            logger.error(f"Failed to send welcome email: {e}")
+        # Send welcome email asynchronously (non-blocking)
+        from .tasks import send_welcome_email
+        send_welcome_email.delay(user.id, shul.id)
+        logger.info(f"Welcome email task queued for {user.email}")
 
         return Response({
             'message': 'Account created successfully!',
