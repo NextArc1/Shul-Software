@@ -276,6 +276,7 @@ if SENTRY_DSN and not DEBUG:
         traces_sample_rate=0.1,  # 10% of transactions for performance monitoring
         profiles_sample_rate=0.1,  # 10% of transactions for profiling
         enable_tracing=True,
+        send_default_pii=True,  # Include user data like IP and headers
         environment='production' if not DEBUG else 'development',
     )
 
