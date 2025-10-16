@@ -558,6 +558,54 @@ def refresh_zmanim(request):
     })
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def extend_zmanim_forward(request):
+    """Extend zmanim forward to ensure 6 months of data from today"""
+    shul = request.user.shuls.first()
+    if not shul:
+        return Response({'error': 'No shul found'}, status=status.HTTP_404_NOT_FOUND)
+
+    from .zmanim_calculator import ZmanimCalculator
+
+    today = date.today()
+    target_end_date = today + timedelta(days=180)  # 6 months from today
+
+    # Find last date we have data for
+    last_record = DailyZmanim.objects.filter(shul=shul).order_by('-date').first()
+
+    if last_record and last_record.date >= target_end_date:
+        # Already have 6 months of data
+        return Response({
+            'message': 'Already have 6 months of zmanim data',
+            'last_date': last_record.date.isoformat(),
+            'target_date': target_end_date.isoformat(),
+            'records_created': 0
+        })
+
+    if last_record:
+        # Start from day after last record
+        start_date = last_record.date + timedelta(days=1)
+        days_missing = (target_end_date - last_record.date).days
+    else:
+        # No data exists, start from today
+        start_date = today
+        days_missing = 180
+
+    # Calculate missing zmanim up to 6 months from today
+    count = ZmanimCalculator.calculate_date_range(shul, start_date, target_end_date)
+
+    return Response({
+        'message': f'Extended zmanim to ensure 6 months from today',
+        'start_date': start_date.isoformat(),
+        'end_date': target_end_date.isoformat(),
+        'records_created': count,
+        'days_added': days_missing,
+        'last_date_before': last_record.date.isoformat() if last_record else None,
+        'last_date_after': target_end_date.isoformat()
+    })
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_zmanim_range(request):
@@ -1384,3 +1432,62 @@ Display URL: {display_url}
         }, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ========== FEEDBACK / SUGGESTIONS API ==========
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def submit_feedback(request):
+    """Submit user feedback/suggestions via email"""
+    try:
+        name = request.data.get('name')
+        email = request.data.get('email')
+        subject_type = request.data.get('subject_type', 'General Feedback')
+        message = request.data.get('message')
+
+        if not message:
+            return Response({'error': 'Message is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get user's shul for context
+        shul = request.user.shuls.first()
+        shul_name = shul.name if shul else 'N/A'
+
+        # Send email
+        from django.core.mail import send_mail
+        from django.conf import settings
+
+        email_subject = f'Shul Schedule Feedback: {subject_type}'
+        email_message = f"""New feedback submission from Shul Schedule:
+
+Type: {subject_type}
+From: {name} ({email})
+Shul: {shul_name}
+User ID: {request.user.id}
+
+Message:
+{message}
+
+---
+Submitted at: {timezone.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
+"""
+
+        send_mail(
+            email_subject,
+            email_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.FEEDBACK_EMAIL],  # Your email
+            fail_silently=False,
+        )
+
+        logger.info(f"Feedback submitted by {email} from shul {shul_name}")
+
+        return Response({
+            'message': 'Thank you for your feedback! We will review it shortly.'
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        logger.error(f"Error submitting feedback: {str(e)}")
+        return Response({
+            'error': 'Failed to submit feedback. Please try again later.'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

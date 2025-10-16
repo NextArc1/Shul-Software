@@ -131,7 +131,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files (User uploads)
 MEDIA_URL = '/media/'
@@ -193,7 +194,9 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 # Default "from" email address
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@shuldisplay.com')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@shulschedule.com')
+# Feedback email (where user suggestions/feedback are sent)
+FEEDBACK_EMAIL = config('FEEDBACK_EMAIL', default='shulscheduleapp@gmail.com')
 # Base URL for email links (e.g., registration completion links)
 SITE_URL = config('SITE_URL', default='http://localhost:3000')
 

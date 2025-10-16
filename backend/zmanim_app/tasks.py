@@ -10,31 +10,41 @@ logger = logging.getLogger(__name__)
 @shared_task
 def extend_all_shuls_forward():
     """
-    Weekly task to extend zmanim calculations forward by 1 week
-    Maintains a rolling 6-month buffer
+    Weekly task to extend zmanim calculations to ensure 6 months from today
+    Maintains a rolling 6-month buffer even if task hasn't run for a while
     """
     shuls = Shul.objects.filter(is_active=True)
     logger.info(f"Extending zmanim for {shuls.count()} active shuls")
+
+    today = date.today()
+    target_end_date = today + timedelta(days=180)  # 6 months from today
 
     for shul in shuls:
         try:
             # Find last date we have data for
             last_record = DailyZmanim.objects.filter(shul=shul).order_by('-date').first()
 
+            if last_record and last_record.date >= target_end_date:
+                # Already have 6 months of data
+                logger.info(f"{shul.name}: Already has 6 months of data (last date: {last_record.date})")
+                continue
+
             if last_record:
                 start_date = last_record.date + timedelta(days=1)
+                days_to_add = (target_end_date - last_record.date).days
             else:
-                start_date = date.today()
+                # No data exists, start from today
+                start_date = today
+                days_to_add = 180
 
-            end_date = start_date + timedelta(days=7)  # Add 1 week
-
-            count = ZmanimCalculator.calculate_date_range(shul, start_date, end_date)
-            logger.info(f"Extended {shul.name}: added {count} days")
+            # Calculate missing zmanim up to 6 months from today
+            count = ZmanimCalculator.calculate_date_range(shul, start_date, target_end_date)
+            logger.info(f"Extended {shul.name}: added {count} days (was missing {days_to_add} days)")
 
         except Exception as e:
             logger.error(f"Error extending {shul.name}: {str(e)}")
 
-    return f"Extended {shuls.count()} shuls"
+    return f"Extended {shuls.count()} shuls to 6 months from today"
 
 
 @shared_task

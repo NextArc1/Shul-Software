@@ -62,42 +62,202 @@ const Header = () => {
   };
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: '#162A45' }}>
-      <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+    <AppBar
+      position="static"
+      elevation={0}
+      sx={{
+        backgroundColor: '#ffffff',
+        borderBottom: '1px solid #e5e7eb',
+        color: '#1f2937'
+      }}
+    >
+      <Toolbar sx={{ minHeight: '64px', px: 3 }}>
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{
+            flexGrow: 1,
+            fontWeight: 600,
+            color: '#111827',
+            letterSpacing: '-0.02em'
+          }}
+        >
           Shul Schedule
         </Typography>
 
-        <Box>
+        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
           {isLoggedIn ? (
             <>
-              <Button color="inherit" onClick={openShulDisplay} sx={{ backgroundColor: 'rgba(255,255,255,0.1)', marginRight: 1 }}>Shul Display</Button>
-              <Button color="inherit" component={Link} to="/admin/shul-settings">Shul Settings</Button>
-              <Button color="inherit" component={Link} to="/admin/zmanim-settings">Zmanim Settings</Button>
-              <Button color="inherit" component={Link} to="/admin/zmanim-debug">Future Zmanim</Button>
-              <Button color="inherit" component={Link} to="/admin/about">About</Button>
-              <Button color="inherit" component={Link} to="/admin/setup">Setup</Button>
+              <Button
+                onClick={openShulDisplay}
+                sx={{
+                  color: '#ffffff',
+                  backgroundColor: '#3b82f6',
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: '6px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                  '&:hover': {
+                    backgroundColor: '#2563eb'
+                  }
+                }}
+              >
+                Shul Display
+              </Button>
+              <Button
+                component={Link}
+                to="/admin/shul-settings"
+                sx={{
+                  color: '#4b5563',
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: '6px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6',
+                    color: '#111827'
+                  }
+                }}
+              >
+                Shul Settings
+              </Button>
+              <Button
+                component={Link}
+                to="/admin/zmanim-settings"
+                sx={{
+                  color: '#4b5563',
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: '6px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6',
+                    color: '#111827'
+                  }
+                }}
+              >
+                Zmanim Settings
+              </Button>
+              <Button
+                component={Link}
+                to="/admin/zmanim-debug"
+                sx={{
+                  color: '#4b5563',
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: '6px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6',
+                    color: '#111827'
+                  }
+                }}
+              >
+                Future Zmanim
+              </Button>
+              <Button
+                component={Link}
+                to="/admin/suggestions"
+                sx={{
+                  color: '#4b5563',
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: '6px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6',
+                    color: '#111827'
+                  }
+                }}
+              >
+                Suggestions
+              </Button>
+              <Button
+                component={Link}
+                to="/admin/about"
+                sx={{
+                  color: '#4b5563',
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: '6px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6',
+                    color: '#111827'
+                  }
+                }}
+              >
+                About
+              </Button>
+              <Button
+                component={Link}
+                to="/admin/setup"
+                sx={{
+                  color: '#4b5563',
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: '6px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6',
+                    color: '#111827'
+                  }
+                }}
+              >
+                Setup
+              </Button>
               {isMasterAdmin && (
                 <Button
-                  color="inherit"
                   component={Link}
                   to="/master-admin"
                   sx={{
-                    backgroundColor: 'rgba(255, 199, 0, 0.2)',
-                    marginLeft: 1,
-                    borderLeft: '2px solid rgba(255, 199, 0, 0.5)'
+                    color: '#92400e',
+                    backgroundColor: '#fef3c7',
+                    px: 2,
+                    py: 0.75,
+                    ml: 1,
+                    borderRadius: '6px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    '&:hover': {
+                      backgroundColor: '#fde68a'
+                    }
                   }}
                 >
                   Master Admin
                 </Button>
               )}
               <Button
-                color="inherit"
                 onClick={handleLogout}
                 sx={{
-                  marginLeft: 2,
-                  borderLeft: '1px solid rgba(255, 255, 255, 0.3)',
-                  paddingLeft: 2
+                  color: '#6b7280',
+                  px: 2,
+                  py: 0.75,
+                  ml: 2,
+                  borderLeft: '1px solid #e5e7eb',
+                  borderRadius: '0',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                  '&:hover': {
+                    backgroundColor: '#fef2f2',
+                    color: '#dc2626'
+                  }
                 }}
               >
                 Logout
@@ -105,10 +265,21 @@ const Header = () => {
             </>
           ) : (
             <Button
-              color="inherit"
               component={Link}
               to="/login"
-              sx={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+              sx={{
+                color: '#ffffff',
+                backgroundColor: '#3b82f6',
+                px: 2.5,
+                py: 0.75,
+                borderRadius: '6px',
+                textTransform: 'none',
+                fontWeight: 500,
+                fontSize: '0.875rem',
+                '&:hover': {
+                  backgroundColor: '#2563eb'
+                }
+              }}
             >
               Sign In
             </Button>

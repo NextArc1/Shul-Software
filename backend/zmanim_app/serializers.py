@@ -110,16 +110,35 @@ class CustomTimeSerializer(serializers.ModelSerializer):
                     'base_time': 'Base time is required when time type is "dynamic".'
                 })
 
-        # Validate days selection
+        # Validate calculation mode specific fields
+        calculation_mode = data.get('calculation_mode', 'daily')
+
+        if calculation_mode == 'weekly_target':
+            if data.get('target_weekday') is None:
+                raise serializers.ValidationError({
+                    'target_weekday': 'Target weekday is required when calculation mode is "weekly_target".'
+                })
+            if not isinstance(data.get('target_weekday'), int) or data.get('target_weekday') < 0 or data.get('target_weekday') > 6:
+                raise serializers.ValidationError({
+                    'target_weekday': 'Target weekday must be a number between 0 (Sunday) and 6 (Saturday).'
+                })
+
+        if calculation_mode == 'specific_date':
+            if not data.get('specific_date'):
+                raise serializers.ValidationError({
+                    'specific_date': 'Specific date is required when calculation mode is "specific_date".'
+                })
+
+        # Validate display days selection
         daily = data.get('daily', False)
         days_of_week = data.get('days_of_week', [])
         day_of_week = data.get('day_of_week')  # Legacy field
 
         if not daily:
-            # Not daily - must have at least one day selected
+            # Not daily - must have at least one day selected for display
             if not days_of_week and day_of_week is None:
                 raise serializers.ValidationError({
-                    'days_of_week': 'Please select at least one day, or mark as daily.'
+                    'days_of_week': 'Please select at least one display day, or mark as daily.'
                 })
 
             # Validate days_of_week values

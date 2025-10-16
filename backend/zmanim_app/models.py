@@ -12,20 +12,8 @@ class Shul(models.Model):
     LANGUAGE_CHOICES = [
         ('he', 'Hebrew'),
         ('en', 'English'),
-        ('a', 'Ashkenazic'),
         ('s', 'Sephardic'),
-        ('de', 'German'),
-        ('es', 'Spanish'),
-        ('fr', 'French'),
-        ('ru', 'Russian'),
-        ('pl', 'Polish'),
-        ('fi', 'Finnish'),
-        ('hu', 'Hungarian'),
-        ('ro', 'Romanian'),
-        ('ashkenazi_romanian', 'Romanian (Ashk.)'),
-        ('uk', 'Ukrainian'),
-        ('sh', 'Sephardic + Hebrew'),
-        ('ah', 'Ashkenazic + Hebrew'),
+        ('a', 'Ashkenazic'),
     ]
 
     TIME_FORMAT_CHOICES = [
@@ -295,6 +283,11 @@ class CustomTime(models.Model):
         ('fixed', 'Fixed Time'),
         ('dynamic', 'Dynamic Time'),
     ]
+    CALCULATION_MODE_CHOICES = [
+        ('daily', 'Daily (each day\'s own calculation)'),
+        ('weekly_target', 'Weekly Target Day (show specific weekday\'s time)'),
+        ('specific_date', 'Specific Calendar Date (show one date\'s time)'),
+    ]
     DAY_OF_WEEK_CHOICES = [
         (0, 'Sunday'),
         (1, 'Monday'),
@@ -313,8 +306,29 @@ class CustomTime(models.Model):
     base_time = models.CharField(max_length=100, null=True, blank=True)
     offset_minutes = models.IntegerField(default=0)
     fixed_time = models.TimeField(null=True, blank=True)
-    daily = models.BooleanField(default=False)
-    days_of_week = models.JSONField(default=list, blank=True, help_text='List of days (0=Sunday, 6=Saturday)')
+
+    # Calculation mode - determines which date's zmanim to use
+    calculation_mode = models.CharField(
+        max_length=20,
+        choices=CALCULATION_MODE_CHOICES,
+        default='daily',
+        help_text='How to calculate the time: daily, weekly target day, or specific date'
+    )
+    target_weekday = models.IntegerField(
+        choices=DAY_OF_WEEK_CHOICES,
+        null=True,
+        blank=True,
+        help_text='For weekly_target mode: which weekday to calculate from (0=Sunday, 6=Saturday)'
+    )
+    specific_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text='For specific_date mode: the exact date to calculate from'
+    )
+
+    # Display settings - when to show the calculated time
+    daily = models.BooleanField(default=False, help_text='Display on all days of the week')
+    days_of_week = models.JSONField(default=list, blank=True, help_text='Display on specific days (0=Sunday, 6=Saturday)')
     # Legacy field - kept for backwards compatibility
     day_of_week = models.IntegerField(choices=DAY_OF_WEEK_CHOICES, null=True, blank=True)
     calculated_time = models.DateTimeField(null=True, blank=True)
@@ -326,6 +340,19 @@ class CustomTime(models.Model):
         return f"{self.shul.name} - {self.display_name}"
 
     def calculate_time(self, target_date=None):
+        """
+        Calculate the time for this custom time.
+
+        Args:
+            target_date: The date to display the time on (defaults to today)
+
+        Returns:
+            datetime object with the calculated time, or None if not applicable
+
+        The calculation works in two steps:
+        1. Determine WHICH date's zmanim to use (based on calculation_mode)
+        2. Check if we should DISPLAY on target_date (based on daily/days_of_week)
+        """
         from datetime import datetime, timedelta, date, time as dt_time
         import logging
 
@@ -334,11 +361,12 @@ class CustomTime(models.Model):
         if target_date is None:
             target_date = date.today()
 
+        # STEP 1: Check if we should DISPLAY on this date
         if self.daily:
-            # Daily - applies to all days
+            # Display on all days
             pass
         else:
-            # Check if this custom time applies to the target date
+            # Check if this custom time should be displayed on the target date
             # Convert Python weekday (0=Monday) to our model format (0=Sunday)
             target_day_of_week = (target_date.weekday() + 1) % 7
 
@@ -349,27 +377,35 @@ class CustomTime(models.Model):
                 applicable_days = [self.day_of_week]
 
             if not applicable_days:
-                logger.info(f"Custom time '{self.display_name}' has no applicable days and is not daily.")
+                logger.info(f"Custom time '{self.display_name}' has no display days and is not daily.")
                 return None
 
             if target_day_of_week not in applicable_days:
-                # This custom time doesn't apply to this day
-                logger.info(f"Custom time '{self.display_name}' does not apply on day {target_day_of_week} (target: {target_date})")
+                # This custom time doesn't display on this day
+                logger.info(f"Custom time '{self.display_name}' does not display on day {target_day_of_week} (target: {target_date})")
                 return None
 
-        logger.info(f"Calculating custom time '{self.display_name}' for target date {target_date}")
+        # STEP 2: Determine WHICH date's zmanim to use for calculation
+        calculation_date = self._get_calculation_date(target_date)
 
+        if calculation_date is None:
+            logger.error(f"Could not determine calculation date for '{self.display_name}'")
+            return None
+
+        logger.info(f"Calculating custom time '{self.display_name}' using date {calculation_date} (display date: {target_date})")
+
+        # STEP 3: Calculate the actual time
         if self.time_type == 'fixed':
             fixed_time = self.fixed_time
-            calculated_datetime = datetime.combine(target_date, fixed_time)
+            calculated_datetime = datetime.combine(calculation_date, fixed_time)
             return calculated_datetime
         elif self.time_type == 'dynamic':
             try:
-                # Get zmanim from DailyZmanim table for the target date
-                daily_zmanim = DailyZmanim.objects.filter(shul=self.shul, date=target_date).first()
+                # Get zmanim from DailyZmanim table for the calculation date
+                daily_zmanim = DailyZmanim.objects.filter(shul=self.shul, date=calculation_date).first()
 
                 if not daily_zmanim:
-                    logger.error(f"No DailyZmanim found for {self.shul.name} on {target_date}")
+                    logger.error(f"No DailyZmanim found for {self.shul.name} on {calculation_date}")
                     return None
 
                 # Get the base time field value from DailyZmanim
@@ -379,13 +415,13 @@ class CustomTime(models.Model):
                 base_time_value = getattr(daily_zmanim, base_time_field, None)
 
                 if base_time_value is None:
-                    logger.error(f"Base time '{base_time_field}' is None for {target_date}")
+                    logger.error(f"Base time '{base_time_field}' is None for {calculation_date}")
                     return None
 
                 # Handle different field types
                 if isinstance(base_time_value, dt_time):
-                    # It's a TimeField - combine with target date
-                    base_datetime = datetime.combine(target_date, base_time_value)
+                    # It's a TimeField - combine with calculation date
+                    base_datetime = datetime.combine(calculation_date, base_time_value)
                 elif isinstance(base_time_value, datetime):
                     # It's already a datetime (molad, kiddush levana fields)
                     base_datetime = base_time_value
@@ -403,6 +439,59 @@ class CustomTime(models.Model):
                 return None
         else:
             logger.error(f"Unknown time_type '{self.time_type}' for custom time '{self.display_name}'")
+            return None
+
+    def _get_calculation_date(self, target_date):
+        """
+        Determine which date's zmanim to use for calculation based on calculation_mode.
+
+        Args:
+            target_date: The date we're displaying on
+
+        Returns:
+            The date whose zmanim should be used for calculation
+        """
+        from datetime import date, timedelta
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        if self.calculation_mode == 'daily':
+            # Use the target date's own zmanim
+            return target_date
+
+        elif self.calculation_mode == 'weekly_target':
+            # Use the next occurrence (or current day if it's the target weekday) of target_weekday
+            if self.target_weekday is None:
+                logger.error(f"Custom time '{self.display_name}' is in weekly_target mode but has no target_weekday")
+                return None
+
+            # Convert target_date weekday to our format (0=Sunday)
+            current_day_of_week = (target_date.weekday() + 1) % 7
+
+            # Calculate days until target weekday
+            if current_day_of_week <= self.target_weekday:
+                # Target day is this week (today or later this week)
+                days_ahead = self.target_weekday - current_day_of_week
+            else:
+                # Target day is next week
+                days_ahead = (7 - current_day_of_week) + self.target_weekday
+
+            calculation_date = target_date + timedelta(days=days_ahead)
+            logger.info(f"Weekly target mode: using {calculation_date} (target weekday: {self.target_weekday})")
+            return calculation_date
+
+        elif self.calculation_mode == 'specific_date':
+            # Use the specific calendar date
+            if self.specific_date is None:
+                logger.error(f"Custom time '{self.display_name}' is in specific_date mode but has no specific_date")
+                return None
+
+            logger.info(f"Specific date mode: using {self.specific_date}")
+            return self.specific_date
+
+        else:
+            logger.error(f"Unknown calculation_mode '{self.calculation_mode}' for custom time '{self.display_name}'")
             return None
 
 

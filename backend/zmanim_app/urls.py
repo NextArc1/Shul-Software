@@ -15,6 +15,7 @@ urlpatterns = [
     # Zmanim (admin)
     path('zmanim/', views.get_zmanim, name='get_zmanim'),
     path('zmanim/refresh/', views.refresh_zmanim, name='refresh_zmanim'),
+    path('zmanim/extend/', views.extend_zmanim_forward, name='extend_zmanim_forward'),
     path('zmanim/range/', views.get_zmanim_range, name='get_zmanim_range'),
     path('zmanim/available-fields/', views.get_available_base_times, name='available_fields'),
     
@@ -45,4 +46,7 @@ urlpatterns = [
 
     # Public display API (no authentication required)
     path('display/<slug:shul_slug>/', views.shul_display_data, name='shul_display_data'),
+
+    # Feedback / Suggestions
+    path('feedback/', views.submit_feedback, name='submit_feedback'),
 ]

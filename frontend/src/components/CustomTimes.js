@@ -9,6 +9,9 @@ const CustomTimes = ({ onCustomTimeCreated, editingCustomTime, onCancelEdit }) =
   const [fixedTime, setFixedTime] = useState('');
   const [baseTime, setBaseTime] = useState('');
   const [offsetMinutes, setOffsetMinutes] = useState(0);
+  const [calculationMode, setCalculationMode] = useState('daily');
+  const [targetWeekday, setTargetWeekday] = useState('');
+  const [specificDate, setSpecificDate] = useState('');
   const [daily, setDaily] = useState(false);
   const [daysOfWeek, setDaysOfWeek] = useState([]);
   const [availableZmanim, setAvailableZmanim] = useState([]);
@@ -23,6 +26,9 @@ const CustomTimes = ({ onCustomTimeCreated, editingCustomTime, onCancelEdit }) =
     setFixedTime('');
     setBaseTime('');
     setOffsetMinutes(0);
+    setCalculationMode('daily');
+    setTargetWeekday('');
+    setSpecificDate('');
     setDaily(false);
     setDaysOfWeek([]);
     setErrors({});
@@ -54,6 +60,9 @@ const CustomTimes = ({ onCustomTimeCreated, editingCustomTime, onCancelEdit }) =
       setFixedTime(editingCustomTime.fixed_time || '');
       setBaseTime(editingCustomTime.base_time || '');
       setOffsetMinutes(editingCustomTime.offset_minutes || 0);
+      setCalculationMode(editingCustomTime.calculation_mode || 'daily');
+      setTargetWeekday(editingCustomTime.target_weekday !== null && editingCustomTime.target_weekday !== undefined ? editingCustomTime.target_weekday : '');
+      setSpecificDate(editingCustomTime.specific_date || '');
       setDaily(editingCustomTime.daily);
       // Handle both new (days_of_week) and legacy (day_of_week) formats
       if (editingCustomTime.days_of_week && editingCustomTime.days_of_week.length > 0) {
@@ -81,6 +90,9 @@ const CustomTimes = ({ onCustomTimeCreated, editingCustomTime, onCancelEdit }) =
       fixed_time: timeType === 'fixed' ? fixedTime : null,
       base_time: timeType === 'dynamic' ? baseTime : null,
       offset_minutes: timeType === 'dynamic' ? offsetMinutes : 0,
+      calculation_mode: calculationMode,
+      target_weekday: calculationMode === 'weekly_target' ? (targetWeekday !== '' ? parseInt(targetWeekday) : null) : null,
+      specific_date: calculationMode === 'specific_date' ? specificDate : null,
       daily: daily,
       days_of_week: daily ? [] : daysOfWeek,
     };
@@ -248,8 +260,86 @@ const CustomTimes = ({ onCustomTimeCreated, editingCustomTime, onCancelEdit }) =
           </div>
         )}
 
+        <div style={{
+          marginBottom: '20px',
+          padding: '15px',
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #dee2e6',
+          borderRadius: '8px'
+        }}>
+          <h4 style={{ marginTop: 0, marginBottom: '15px', color: '#495057' }}>Calculation Settings</h4>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Calculation Mode:</label>
+            <select
+              value={calculationMode}
+              onChange={(e) => {
+                setCalculationMode(e.target.value);
+                // Clear mode-specific fields when switching
+                setTargetWeekday('');
+                setSpecificDate('');
+              }}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+            >
+              <option value="daily">Daily (each day's own calculation)</option>
+              <option value="weekly_target">Weekly Target Day (show specific weekday's time)</option>
+              <option value="specific_date">Specific Calendar Date (show one date's time)</option>
+            </select>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+              {calculationMode === 'daily' && 'Uses each day\'s own zmanim for calculation'}
+              {calculationMode === 'weekly_target' && 'Shows a specific weekday\'s time throughout the week (e.g., always show Friday\'s Mincha)'}
+              {calculationMode === 'specific_date' && 'Shows a specific date\'s time until manually deleted (e.g., Yom Tov schedule)'}
+            </div>
+          </div>
+
+          {calculationMode === 'weekly_target' && (
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Target Weekday:</label>
+              <select
+                value={targetWeekday}
+                onChange={(e) => setTargetWeekday(e.target.value)}
+                required
+                style={{ width: '100%', padding: '8px', border: errors.target_weekday ? '2px solid red' : '1px solid #ccc', borderRadius: '4px' }}
+              >
+                <option value="">Select Target Weekday</option>
+                <option value="0">Sunday</option>
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3">Wednesday</option>
+                <option value="4">Thursday</option>
+                <option value="5">Friday</option>
+                <option value="6">Saturday</option>
+              </select>
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+                Which day of the week to calculate the time from
+              </div>
+              {errors.target_weekday && <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>{errors.target_weekday}</div>}
+            </div>
+          )}
+
+          {calculationMode === 'specific_date' && (
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Specific Date:</label>
+              <input
+                type="date"
+                value={specificDate}
+                onChange={(e) => setSpecificDate(e.target.value)}
+                required
+                style={{ width: '100%', padding: '8px', border: errors.specific_date ? '2px solid red' : '1px solid #ccc', borderRadius: '4px' }}
+              />
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+                The exact date to calculate the time from (e.g., first day of Sukkos)
+              </div>
+              {errors.specific_date && <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>{errors.specific_date}</div>}
+            </div>
+          )}
+        </div>
+
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Display on:</label>
+          <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
+            Choose which days to show this time on the display screen
+          </div>
           <div style={{ marginBottom: '10px' }}>
             <label style={{ display: 'flex', alignItems: 'center' }}>
               <input

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000/api';
 
 function ZmanimDebug() {
   const [zmanimData, setZmanimData] = useState([]);
@@ -9,6 +9,8 @@ function ZmanimDebug() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [activeTab, setActiveTab] = useState('zmanim');
+  const [extending, setExtending] = useState(false);
+  const [extendMessage, setExtendMessage] = useState('');
 
   useEffect(() => {
     // Set default date range (today to 6 months from now)
@@ -57,6 +59,50 @@ function ZmanimDebug() {
     }
   };
 
+  const handleExtendZmanim = async () => {
+    try {
+      setExtending(true);
+      setExtendMessage('');
+
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setExtendMessage('Please log in first');
+        setExtending(false);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/zmanim/extend/`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Token ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to extend zmanim');
+      }
+
+      const data = await response.json();
+      setExtendMessage(`✓ ${data.message} (${data.records_created} days added)`);
+
+      // Refresh the data after extending
+      setTimeout(() => {
+        fetchZmanimRange();
+      }, 1000);
+
+      // Clear message after 5 seconds
+      setTimeout(() => setExtendMessage(''), 5000);
+
+    } catch (err) {
+      console.error('Error extending zmanim:', err);
+      setExtendMessage(`Error: ${err.message}`);
+    } finally {
+      setExtending(false);
+    }
+  };
+
   useEffect(() => {
     if (startDate && endDate) {
       fetchZmanimRange();
@@ -90,7 +136,7 @@ function ZmanimDebug() {
       <h3 style={{ marginBottom: '10px' }}>Basic Zmanim Times (14 fields)</h3>
       <table style={tableStyle}>
         <thead>
-          <tr style={{ backgroundColor: '#e3f2fd' }}>
+          <tr style={{ backgroundColor: '#dbeafe' }}>
             <th style={headerStyle}>Date</th>
             <th style={headerStyle}>Alos</th>
             <th style={headerStyle}>Hanetz</th>
@@ -138,7 +184,7 @@ function ZmanimDebug() {
       <h3 style={{ marginBottom: '10px' }}>Additional Zmanim (12 fields)</h3>
       <table style={tableStyle}>
         <thead>
-          <tr style={{ backgroundColor: '#fff3e0' }}>
+          <tr style={{ backgroundColor: '#dbeafe' }}>
             <th style={headerStyle}>Date</th>
             <th style={headerStyle}>Sea Sunrise</th>
             <th style={headerStyle}>Sea Sunset</th>
@@ -178,7 +224,7 @@ function ZmanimDebug() {
       <h3 style={{ marginTop: '30px', marginBottom: '10px' }}>Halachic Hours (3 fields)</h3>
       <table style={tableStyle}>
         <thead>
-          <tr style={{ backgroundColor: '#fff3e0' }}>
+          <tr style={{ backgroundColor: '#dbeafe' }}>
             <th style={headerStyle}>Date</th>
             <th style={headerStyle}>Shaah Zmanis GRA</th>
             <th style={headerStyle}>Shaah Zmanis MGA</th>
@@ -204,7 +250,7 @@ function ZmanimDebug() {
       <h3 style={{ marginBottom: '10px' }}>Jewish Date Info (5 fields)</h3>
       <table style={tableStyle}>
         <thead>
-          <tr style={{ backgroundColor: '#e8f5e9' }}>
+          <tr style={{ backgroundColor: '#dbeafe' }}>
             <th style={headerStyle}>Gregorian Date</th>
             <th style={headerStyle}>Jewish Year</th>
             <th style={headerStyle}>Month #</th>
@@ -230,7 +276,7 @@ function ZmanimDebug() {
       <h3 style={{ marginTop: '30px', marginBottom: '10px' }}>Special Days & Holidays (3 fields + 8 flags)</h3>
       <table style={tableStyle}>
         <thead>
-          <tr style={{ backgroundColor: '#e8f5e9' }}>
+          <tr style={{ backgroundColor: '#dbeafe' }}>
             <th style={headerStyle}>Date</th>
             <th style={headerStyle}>Significant Day</th>
             <th style={headerStyle}>Omer</th>
@@ -268,7 +314,7 @@ function ZmanimDebug() {
       <h3 style={{ marginTop: '30px', marginBottom: '10px' }}>Molad & Kiddush Levana (4 fields)</h3>
       <table style={tableStyle}>
         <thead>
-          <tr style={{ backgroundColor: '#e8f5e9' }}>
+          <tr style={{ backgroundColor: '#dbeafe' }}>
             <th style={headerStyle}>Date</th>
             <th style={headerStyle}>Molad</th>
             <th style={headerStyle}>KL Earliest (3 days)</th>
@@ -296,7 +342,7 @@ function ZmanimDebug() {
       <h3 style={{ marginBottom: '10px' }}>Learning Schedules (8 fields)</h3>
       <table style={tableStyle}>
         <thead>
-          <tr style={{ backgroundColor: '#f3e5f5' }}>
+          <tr style={{ backgroundColor: '#dbeafe' }}>
             <th style={headerStyle}>Date</th>
             <th style={headerStyle}>Parsha</th>
             <th style={headerStyle}>Daf Yomi Bavli</th>
@@ -327,35 +373,132 @@ function ZmanimDebug() {
     </div>
   );
 
+  const pageStyles = {
+    pageContainer: {
+      minHeight: '100vh',
+      backgroundColor: '#f5f7fa',
+      padding: '0',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+    },
+    header: {
+      background: 'linear-gradient(to right, #ffffff 0%, #f8fafc 100%)',
+      color: '#1e293b',
+      padding: '32px 40px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+      marginBottom: '0',
+      borderBottom: '1px solid #e2e8f0'
+    },
+    headerTitle: {
+      margin: '0',
+      fontSize: '28px',
+      fontWeight: '600',
+      letterSpacing: '-0.3px',
+      color: '#0f172a'
+    },
+    contentWrapper: {
+      maxWidth: '100%',
+      margin: '0 auto',
+      padding: '40px 40px 40px',
+      overflow: 'auto'
+    }
+  };
+
   return (
-    <div style={{ padding: '20px', maxWidth: '100%', overflow: 'auto' }}>
-      <h1>Future Zmanim - ALL Fields (64 total!)</h1>
-
-      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-        <label>
-          Start Date:
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            style={{ marginLeft: '10px', padding: '5px' }}
-          />
-        </label>
-
-        <label>
-          End Date:
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            style={{ marginLeft: '10px', padding: '5px' }}
-          />
-        </label>
-
-        <button onClick={fetchZmanimRange} style={{ padding: '5px 15px' }}>
-          Refresh
-        </button>
+    <div style={pageStyles.pageContainer}>
+      <div style={pageStyles.header}>
+        <h1 style={pageStyles.headerTitle}>Future Zmanim - All Fields</h1>
       </div>
+
+      <div style={pageStyles.contentWrapper}>
+      <div style={{ marginBottom: '20px', display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500' }}>
+            Start Date:
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+            />
+          </label>
+
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500' }}>
+            End Date:
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+            />
+          </label>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={handleExtendZmanim}
+            disabled={extending}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: extending ? '#9ca3af' : '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: extending ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            }}
+            onMouseEnter={(e) => {
+              if (!extending) e.target.style.backgroundColor = '#059669';
+            }}
+            onMouseLeave={(e) => {
+              if (!extending) e.target.style.backgroundColor = '#10b981';
+            }}
+          >
+            {extending ? 'Calculating...' : 'Calculate Zmanim'}
+          </button>
+          <div
+            style={{
+              position: 'relative',
+              display: 'inline-block'
+            }}
+            title="Ensures you have 6 months of zmanim data. Use this if the automated weekly calculations haven't been running or if you're missing future dates."
+          >
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              cursor: 'help',
+              userSelect: 'none'
+            }}>
+              i
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {extendMessage && (
+        <div style={{
+          padding: '12px 16px',
+          marginBottom: '20px',
+          backgroundColor: extendMessage.includes('Error') ? '#fee2e2' : '#d1fae5',
+          color: extendMessage.includes('Error') ? '#991b1b' : '#065f46',
+          borderRadius: '6px',
+          fontSize: '14px',
+          fontWeight: '500',
+          border: `1px solid ${extendMessage.includes('Error') ? '#fecaca' : '#a7f3d0'}`
+        }}>
+          {extendMessage}
+        </div>
+      )}
 
       {/* Tab Navigation */}
       <div style={{ marginBottom: '20px', borderBottom: '2px solid #ddd' }}>
@@ -363,7 +506,7 @@ function ZmanimDebug() {
           onClick={() => setActiveTab('zmanim')}
           style={{
             ...tabButtonStyle,
-            backgroundColor: activeTab === 'zmanim' ? '#2196F3' : '#f0f0f0',
+            backgroundColor: activeTab === 'zmanim' ? '#3b82f6' : '#f0f0f0',
             color: activeTab === 'zmanim' ? 'white' : 'black',
           }}
         >
@@ -373,7 +516,7 @@ function ZmanimDebug() {
           onClick={() => setActiveTab('additional')}
           style={{
             ...tabButtonStyle,
-            backgroundColor: activeTab === 'additional' ? '#FF9800' : '#f0f0f0',
+            backgroundColor: activeTab === 'additional' ? '#3b82f6' : '#f0f0f0',
             color: activeTab === 'additional' ? 'white' : 'black',
           }}
         >
@@ -383,7 +526,7 @@ function ZmanimDebug() {
           onClick={() => setActiveTab('calendar')}
           style={{
             ...tabButtonStyle,
-            backgroundColor: activeTab === 'calendar' ? '#4CAF50' : '#f0f0f0',
+            backgroundColor: activeTab === 'calendar' ? '#3b82f6' : '#f0f0f0',
             color: activeTab === 'calendar' ? 'white' : 'black',
           }}
         >
@@ -393,7 +536,7 @@ function ZmanimDebug() {
           onClick={() => setActiveTab('limudim')}
           style={{
             ...tabButtonStyle,
-            backgroundColor: activeTab === 'limudim' ? '#9C27B0' : '#f0f0f0',
+            backgroundColor: activeTab === 'limudim' ? '#3b82f6' : '#f0f0f0',
             color: activeTab === 'limudim' ? 'white' : 'black',
           }}
         >
@@ -416,7 +559,7 @@ function ZmanimDebug() {
       {!loading && !error && zmanimData.length > 0 && (
         <div>
           <p style={{ marginBottom: '20px', fontWeight: 'bold', fontSize: '16px' }}>
-            📊 Showing {zmanimData.length} days of complete zmanim data (64 fields per day)
+            Showing {zmanimData.length} days of complete zmanim data (64 fields per day)
           </p>
 
           {activeTab === 'zmanim' && renderBasicZmanimTab()}
@@ -425,6 +568,7 @@ function ZmanimDebug() {
           {activeTab === 'limudim' && renderLimudimTab()}
         </div>
       )}
+      </div>
     </div>
   );
 }

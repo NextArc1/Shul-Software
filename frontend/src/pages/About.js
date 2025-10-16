@@ -9,21 +9,23 @@ const About = () => {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
     },
     heroSection: {
-      background: 'linear-gradient(135deg, #162A45 0%, #1e3a5f 100%)',
-      color: 'white',
-      padding: '80px 40px',
+      background: 'linear-gradient(to right, #ffffff 0%, #f8fafc 100%)',
+      color: '#1e293b',
+      padding: '48px 40px',
       textAlign: 'center',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+      borderBottom: '1px solid #e2e8f0'
     },
     heroTitle: {
-      fontSize: '48px',
-      fontWeight: '700',
-      marginBottom: '20px',
-      letterSpacing: '-1px'
+      fontSize: '36px',
+      fontWeight: '600',
+      marginBottom: '12px',
+      letterSpacing: '-0.5px',
+      color: '#0f172a'
     },
     heroSubtitle: {
-      fontSize: '22px',
-      opacity: 0.9,
+      fontSize: '18px',
+      color: '#64748b',
       maxWidth: '800px',
       margin: '0 auto',
       lineHeight: '1.6'
@@ -93,12 +95,12 @@ const About = () => {
       padding: '30px',
       textAlign: 'center',
       boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-      border: '2px solid #162A45'
+      border: '2px solid #3b82f6'
     },
     statNumber: {
       fontSize: '40px',
       fontWeight: '700',
-      color: '#162A45',
+      color: '#3b82f6',
       marginBottom: '8px'
     },
     statLabel: {
@@ -160,13 +162,13 @@ const About = () => {
       padding: '16px 40px',
       fontSize: '18px',
       fontWeight: '600',
-      backgroundColor: '#162A45',
+      backgroundColor: '#3b82f6',
       color: 'white',
       border: 'none',
       borderRadius: '10px',
       cursor: 'pointer',
       transition: 'all 0.3s ease',
-      boxShadow: '0 4px 12px rgba(22,42,69,0.3)'
+      boxShadow: '0 4px 12px rgba(59,130,246,0.3)'
     }
   };
 
@@ -404,11 +406,13 @@ const About = () => {
               style={styles.ctaButton}
               onMouseEnter={(e) => {
                 e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 6px 16px rgba(22,42,69,0.4)';
+                e.target.style.boxShadow = '0 6px 16px rgba(59,130,246,0.4)';
+                e.target.style.backgroundColor = '#2563eb';
               }}
               onMouseLeave={(e) => {
                 e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 12px rgba(22,42,69,0.3)';
+                e.target.style.boxShadow = '0 4px 12px rgba(59,130,246,0.3)';
+                e.target.style.backgroundColor = '#3b82f6';
               }}
               onClick={() => window.location.href = '/admin/setup'}
             >

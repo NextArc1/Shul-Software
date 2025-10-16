@@ -6,7 +6,7 @@ const ZipcodeForm = () => {
   const [country, setCountry] = useState('USA');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
-  const [language, setLanguage] = useState('s');
+  const [language, setLanguage] = useState('he');
   const [timeFormat, setTimeFormat] = useState('12h');
   const [showSeconds, setShowSeconds] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -34,25 +34,25 @@ const ZipcodeForm = () => {
   // Styles
   const styles = {
     container: {
-      maxWidth: '800px',
+      maxWidth: '900px',
       margin: '0 auto',
-      padding: '2rem',
+      padding: '0',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      backgroundColor: '#ffffff',
-      borderRadius: '12px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.07)',
-      border: '1px solid #e5e7eb'
+      backgroundColor: 'transparent'
     },
     header: {
-      marginBottom: '2rem',
-      textAlign: 'center',
-      color: '#1f2937'
+      marginBottom: '2.5rem',
+      textAlign: 'left',
+      padding: '2rem',
+      backgroundColor: '#ffffff',
+      borderRadius: '12px',
+      border: '1px solid #e5e7eb'
     },
     title: {
       fontSize: '2rem',
       fontWeight: '700',
       margin: '0 0 0.5rem 0',
-      color: '#111827'
+      color: '#0f172a'
     },
     subtitle: {
       fontSize: '1rem',
@@ -60,27 +60,51 @@ const ZipcodeForm = () => {
       margin: 0
     },
     currentInfo: {
-      padding: '1rem',
+      padding: '1.25rem 2rem',
       marginBottom: '2rem',
-      backgroundColor: '#f0f9ff',
-      border: '1px solid #bae6fd',
-      borderRadius: '8px',
+      backgroundColor: '#ffffff',
+      border: '1px solid #e5e7eb',
+      borderRadius: '12px',
       fontSize: '0.95rem',
-      color: '#0c4a6e',
+      color: '#374151',
       display: 'flex',
       alignItems: 'center',
       gap: '0.5rem'
     },
     section: {
-      marginBottom: '2.5rem'
+      marginBottom: '2rem',
+      padding: '2.5rem',
+      backgroundColor: '#ffffff',
+      borderRadius: '12px',
+      border: '1px solid #e5e7eb',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
     },
     sectionTitle: {
-      fontSize: '1.25rem',
+      fontSize: '1.4rem',
+      fontWeight: '600',
+      color: '#0f172a',
+      marginBottom: '0.75rem',
+      paddingBottom: '0',
+      borderBottom: 'none'
+    },
+    sectionDescription: {
+      fontSize: '0.9rem',
+      color: '#6b7280',
+      marginBottom: '1.75rem',
+      lineHeight: '1.6'
+    },
+    sectionDivider: {
+      height: '1px',
+      backgroundColor: '#e5e7eb',
+      margin: '2rem 0',
+      border: 'none'
+    },
+    subsectionTitle: {
+      fontSize: '1.05rem',
       fontWeight: '600',
       color: '#374151',
       marginBottom: '1rem',
-      paddingBottom: '0.5rem',
-      borderBottom: '2px solid #e5e7eb'
+      marginTop: '1.5rem'
     },
     formGroup: {
       marginBottom: '1.5rem'
@@ -146,40 +170,45 @@ const ZipcodeForm = () => {
       cursor: 'not-allowed'
     },
     primaryButton: {
-      padding: '1rem 2rem',
-      backgroundColor: '#059669',
+      padding: '1.25rem 2rem',
+      backgroundColor: '#3b82f6',
       color: 'white',
       border: 'none',
-      borderRadius: '8px',
-      fontSize: '1.1rem',
+      borderRadius: '12px',
+      fontSize: '1.05rem',
       fontWeight: '600',
       cursor: 'pointer',
       transition: 'all 0.2s',
-      marginTop: '2rem',
+      marginTop: '0',
       width: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '0.5rem',
+      boxShadow: '0 2px 4px rgba(59,130,246,0.2)'
+    },
+    alert: {
+      padding: '1.25rem 2rem',
+      marginTop: '2rem',
+      borderRadius: '12px',
+      fontSize: '0.95rem',
+      fontWeight: '500',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       gap: '0.5rem'
     },
-    alert: {
-      padding: '1rem',
-      marginTop: '1.5rem',
-      borderRadius: '8px',
-      fontSize: '0.95rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.5rem'
-    },
     alertSuccess: {
       backgroundColor: '#d1fae5',
       border: '1px solid #a7f3d0',
-      color: '#065f46'
+      color: '#065f46',
+      boxShadow: '0 1px 3px rgba(16,185,129,0.1)'
     },
     alertError: {
       backgroundColor: '#fee2e2',
       border: '1px solid #fecaca',
-      color: '#991b1b'
+      color: '#991b1b',
+      boxShadow: '0 1px 3px rgba(239,68,68,0.1)'
     },
     gridTwo: {
       display: 'grid',
@@ -350,7 +379,7 @@ const ZipcodeForm = () => {
       setSuccessMessage('Saving settings...');
 
       // Use fetch directly for FormData upload
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/shul/`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:8000/api'}/shul/`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Token ${token}`,
@@ -362,7 +391,7 @@ const ZipcodeForm = () => {
         throw new Error('Failed to save settings');
       }
 
-      setSuccessMessage('✓ Settings saved successfully!');
+      setSuccessMessage('Settings saved successfully!');
 
       // Clear the remove flag and logo state if logo was removed
       if (removeLogo) {
@@ -405,21 +434,25 @@ const ZipcodeForm = () => {
       
       <div style={styles.header}>
         <h1 style={styles.title}>Shul Configuration</h1>
-        <p style={styles.subtitle}>Configure your synagogue's location and display preferences</p>
+        <p style={styles.subtitle}>Configure your shul's location and display preferences</p>
       </div>
 
       {currentZipCode && (
         <div style={styles.currentInfo}>
-          <span>📍</span>
           <strong>Current Location:</strong> {currentZipCode}
         </div>
       )}
 
       <form onSubmit={handleSubmit}>
+        {/* ========== SECTION 1: BASIC CONFIGURATION ========== */}
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>📍 Location Settings</h2>
-          <p style={styles.helpText}>Location is optional but required for accurate prayer times</p>
-          
+          <h2 style={styles.sectionTitle}>Basic Configuration</h2>
+          <p style={styles.sectionDescription}>
+            Set up your shul's location and regional preferences. Location is required for accurate zmanim calculations.
+          </p>
+
+          <h3 style={styles.subsectionTitle}>Location Information</h3>
+
           <div style={styles.formGroup}>
             <label style={styles.label}>Zip/Postal Code</label>
             <div style={styles.flexRow}>
@@ -506,32 +539,22 @@ const ZipcodeForm = () => {
               />
             </div>
           </div>
-        </div>
 
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Display Preferences</h2>
-          
+          <hr style={styles.sectionDivider} />
+
+          <h3 style={styles.subsectionTitle}>Regional Preferences</h3>
+
           <div style={styles.formGroup}>
-            <label style={styles.label}>Language & Tradition</label>
-            <select 
-              value={language} 
+            <label style={styles.label}>Display Language</label>
+            <select
+              value={language}
               onChange={e => setLanguage(e.target.value)}
               style={styles.select}
             >
-              <option value="s">Sephardic (Default)</option>
-              <option value="a">Ashkenazic</option>
               <option value="he">Hebrew</option>
-              <option value="de">German</option>
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              <option value="ru">Russian</option>
-              <option value="pl">Polish</option>
-              <option value="fi">Finnish</option>
-              <option value="hu">Hungarian</option>
-              <option value="ro">Romanian</option>
-              <option value="uk">Ukrainian</option>
-              <option value="sh">Sephardic + Hebrew</option>
-              <option value="ah">Ashkenazic + Hebrew</option>
+              <option value="en">English</option>
+              <option value="s">Sephardic Transliteration</option>
+              <option value="a">Ashkenazic Transliteration</option>
             </select>
           </div>
 
@@ -561,9 +584,14 @@ const ZipcodeForm = () => {
           </div>
         </div>
 
+        {/* ========== SECTION 2: BRANDING & IDENTITY ========== */}
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>🖼️ Center Display Customization</h2>
-          <p style={styles.helpText}>Choose to display either a logo or text in the center of your display screen</p>
+          <h2 style={styles.sectionTitle}>Branding & Identity</h2>
+          <p style={styles.sectionDescription}>
+            Customize the center of your display with your shul's name or logo. Choose between text or an uploaded logo, and adjust positioning and styling.
+          </p>
+
+          <h3 style={styles.subsectionTitle}>Center Text</h3>
 
           <div style={styles.formGroup}>
             <label style={styles.label}>Center Text</label>
@@ -649,6 +677,8 @@ const ZipcodeForm = () => {
               <div style={styles.helpText}>Choose the font style</div>
             </div>
           </div>
+
+          <h3 style={styles.subsectionTitle}>Logo Settings</h3>
 
           <div style={styles.formGroup}>
             <label style={styles.label}>Vertical Position</label>
@@ -740,9 +770,14 @@ const ZipcodeForm = () => {
           </div>
         </div>
 
+        {/* ========== SECTION 3: VISUAL STYLING ========== */}
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Box & Header Colors</h2>
-          <p style={styles.helpText}>Customize the outline color for all boxes and header styling</p>
+          <h2 style={styles.sectionTitle}>Visual Styling</h2>
+          <p style={styles.sectionDescription}>
+            Customize the colors and background of your display. These settings apply globally across all display elements.
+          </p>
+
+          <h3 style={styles.subsectionTitle}>Color Scheme</h3>
 
           <div style={styles.formGroup}>
             <label style={styles.label}>Box Outline Color (All Boxes)</label>
@@ -808,11 +843,10 @@ const ZipcodeForm = () => {
               <div style={styles.helpText}>Background color for the top header</div>
             </div>
           </div>
-        </div>
 
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>🖼️ Background Customization</h2>
-          <p style={styles.helpText}>Choose your display background style</p>
+          <hr style={styles.sectionDivider} />
+
+          <h3 style={styles.subsectionTitle}>Background</h3>
 
           <div style={styles.formGroup}>
             <label style={styles.label}>Background Type</label>
@@ -900,33 +934,38 @@ const ZipcodeForm = () => {
           )}
         </div>
 
-        <button
-          type="submit"
-          disabled={isSaving}
-          style={{
-            ...styles.primaryButton,
-            ...(isSaving ? { backgroundColor: '#9ca3af', cursor: 'not-allowed' } : {})
-          }}
-        >
+        <div style={{
+          padding: '2.5rem',
+          backgroundColor: '#ffffff',
+          borderRadius: '12px',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+        }}>
+          <button
+            type="submit"
+            disabled={isSaving}
+            style={{
+              ...styles.primaryButton,
+              ...(isSaving ? { backgroundColor: '#9ca3af', cursor: 'not-allowed', boxShadow: 'none' } : {})
+            }}
+          >
           {isSaving ? (
             <>
               <div style={styles.spinner}></div>
               Saving Settings...
             </>
           ) : (
-            <>
-              💾 Save Configuration
-            </>
+            'Save Configuration'
           )}
-        </button>
+          </button>
+        </div>
       </form>
 
       {successMessage && (
         <div style={{
           ...styles.alert,
-          ...(successMessage.includes('✓') ? styles.alertSuccess : styles.alertError)
+          ...(successMessage.includes('✓') || successMessage.includes('success') ? styles.alertSuccess : styles.alertError)
         }}>
-          <span>{successMessage.includes('✓') ? '✅' : '⚠️'}</span>
           {successMessage}
         </div>
       )}

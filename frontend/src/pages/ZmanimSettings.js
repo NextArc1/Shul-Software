@@ -13,22 +13,24 @@ const styles = {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
   },
   header: {
-    background: 'linear-gradient(135deg, #162A45 0%, #1e3a5f 100%)',
-    color: 'white',
-    padding: '30px 40px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    marginBottom: '30px'
+    background: 'linear-gradient(to right, #ffffff 0%, #f8fafc 100%)',
+    color: '#1e293b',
+    padding: '32px 40px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    marginBottom: '0',
+    borderBottom: '1px solid #e2e8f0'
   },
   headerTitle: {
-    margin: '0 0 10px 0',
-    fontSize: '32px',
+    margin: '0',
+    fontSize: '28px',
     fontWeight: '600',
-    letterSpacing: '-0.5px'
+    letterSpacing: '-0.3px',
+    color: '#0f172a'
   },
   contentWrapper: {
     maxWidth: '1400px',
     margin: '0 auto',
-    padding: '0 40px 40px'
+    padding: '40px 40px 40px'
   },
   sectionHeader: {
     display: 'flex',

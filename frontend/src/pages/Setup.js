@@ -9,21 +9,23 @@ const Setup = () => {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
     },
     heroSection: {
-      background: 'linear-gradient(135deg, #162A45 0%, #1e3a5f 100%)',
-      color: 'white',
-      padding: '60px 40px',
+      background: 'linear-gradient(to right, #ffffff 0%, #f8fafc 100%)',
+      color: '#1e293b',
+      padding: '48px 40px',
       textAlign: 'center',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+      borderBottom: '1px solid #e2e8f0'
     },
     heroTitle: {
-      fontSize: '42px',
-      fontWeight: '700',
-      marginBottom: '15px',
-      letterSpacing: '-1px'
+      fontSize: '36px',
+      fontWeight: '600',
+      marginBottom: '12px',
+      letterSpacing: '-0.5px',
+      color: '#0f172a'
     },
     heroSubtitle: {
-      fontSize: '20px',
-      opacity: 0.9,
+      fontSize: '18px',
+      color: '#64748b',
       maxWidth: '700px',
       margin: '0 auto',
       lineHeight: '1.6'
@@ -100,7 +102,7 @@ const Setup = () => {
       top: '0',
       width: '50px',
       height: '50px',
-      backgroundColor: '#162A45',
+      backgroundColor: '#3b82f6',
       color: 'white',
       borderRadius: '50%',
       display: 'flex',
@@ -112,7 +114,7 @@ const Setup = () => {
     stepTitle: {
       fontSize: '20px',
       fontWeight: '600',
-      color: '#162A45',
+      color: '#0f172a',
       marginBottom: '10px'
     },
     stepDescription: {
@@ -317,6 +319,93 @@ const Setup = () => {
                   <span style={styles.tipIcon}>💡</span>
                   <span style={styles.tipText}>
                     You can rearrange items by dragging them up or down within a box. Changes save automatically!
+                  </span>
+                </div>
+              </div>
+
+              {/* Step 2.5 - Custom Times Feature */}
+              <div style={styles.stepItem}>
+                <div style={{ ...styles.stepNumber, backgroundColor: '#8b5cf6' }}>2.5</div>
+                <h3 style={styles.stepTitle}>Create Custom Times (Optional)</h3>
+                <p style={styles.stepDescription}>
+                  Need to show specific minyan times or special events? Use Custom Times to create times that aren't in the standard zmanim list:
+                </p>
+
+                <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+                  <h4 style={{ fontSize: '17px', fontWeight: '600', color: '#2c3e50', marginBottom: '12px' }}>
+                    Three Calculation Modes:
+                  </h4>
+
+                  {/* Daily Mode */}
+                  <div style={{ backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', padding: '18px', marginBottom: '15px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#0c4a6e', marginBottom: '8px' }}>
+                      📅 Daily (Each Day's Own Calculation)
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#0c4a6e', lineHeight: '1.6', marginBottom: '10px' }}>
+                      Perfect for regular daily times. Each day shows that day's calculated time.
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#0369a1', backgroundColor: '#e0f2fe', padding: '10px', borderRadius: '6px', fontStyle: 'italic' }}>
+                      <strong>Example:</strong> "Daily Shacharis" at 30 minutes before Netz<br/>
+                      → Monday shows Monday's Netz - 30 min<br/>
+                      → Tuesday shows Tuesday's Netz - 30 min
+                    </div>
+                  </div>
+
+                  {/* Weekly Target Mode */}
+                  <div style={{ backgroundColor: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '8px', padding: '18px', marginBottom: '15px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#78350f', marginBottom: '8px' }}>
+                      📆 Weekly Target Day (Show Specific Weekday's Time)
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#78350f', lineHeight: '1.6', marginBottom: '10px' }}>
+                      Display a specific weekday's time throughout the week. Great for showing "Friday Mincha" all week long.
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#92400e', backgroundColor: '#fef3c7', padding: '10px', borderRadius: '6px', fontStyle: 'italic', border: '1px solid #fbbf24' }}>
+                      <strong>Example:</strong> "Friday Mincha" displayed Sunday through Friday<br/>
+                      → Set Target Weekday: Friday<br/>
+                      → Set Base Time: Shkiah - 10 minutes<br/>
+                      → Display Days: Sun, Mon, Tue, Wed, Thu, Fri<br/>
+                      → <strong>Result:</strong> All those days show <u>Friday's</u> Shkiah - 10 min<br/>
+                      → Updates automatically each week to show the upcoming Friday
+                    </div>
+                  </div>
+
+                  {/* Specific Date Mode */}
+                  <div style={{ backgroundColor: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: '8px', padding: '18px', marginBottom: '15px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#065f46', marginBottom: '8px' }}>
+                      📌 Specific Calendar Date (Show One Date's Time)
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#065f46', lineHeight: '1.6', marginBottom: '10px' }}>
+                      Plan ahead for Yomim Tovim or special events. Calculate from one specific date and display it until you manually delete it.
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#047857', backgroundColor: '#d1fae5', padding: '10px', borderRadius: '6px', fontStyle: 'italic', border: '1px solid #6ee7b7' }}>
+                      <strong>Example:</strong> "First Day Sukkos Shacharis" created a month in advance<br/>
+                      → Set Specific Date: October 17, 2025 (first day of Sukkos)<br/>
+                      → Set Base Time: Netz + 30 minutes<br/>
+                      → Display Days: All days<br/>
+                      → <strong>Result:</strong> Shows October 17's Netz + 30 min every day until you delete it<br/>
+                      → Perfect for advance holiday planning
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ backgroundColor: '#f9fafb', borderLeft: '4px solid #3b82f6', padding: '15px', marginTop: '20px' }}>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: '#1e40af', marginBottom: '8px' }}>
+                    How to Create a Custom Time:
+                  </div>
+                  <ol style={{ marginLeft: '20px', color: '#4b5563', lineHeight: '1.7', fontSize: '14px' }}>
+                    <li>Go to "Zmanim Settings"</li>
+                    <li>Scroll to "Create Custom Time" section</li>
+                    <li>Choose between <strong>Fixed Time</strong> (e.g., 7:00 PM) or <strong>Dynamic Time</strong> (e.g., 10 min before Shkiah)</li>
+                    <li>Select your <strong>Calculation Mode</strong> (Daily, Weekly Target, or Specific Date)</li>
+                    <li>Choose which days to <strong>display</strong> this time on the screen</li>
+                    <li>Drag it into one of your display boxes</li>
+                  </ol>
+                </div>
+
+                <div style={styles.tipBox}>
+                  <span style={styles.tipIcon}>💡</span>
+                  <span style={styles.tipText}>
+                    <strong>Pro Tip:</strong> The "Weekly Target Day" mode is especially useful for showing important weekly events like "Early Shabbos Mincha" or "Netz Shacharis on Shabbos Day" throughout the week so everyone knows what time to expect.
                   </span>
                 </div>
               </div>

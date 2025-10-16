@@ -15,6 +15,7 @@ import Register from './pages/Register';  // Import the Register page (LEGACY - 
 import RegistrationRequest from './pages/RegistrationRequest';  // Import the Registration Request page
 import CompleteRegistration from './pages/CompleteRegistration';  // Import the Complete Registration page
 import ZmanimDebug from './pages/ZmanimDebug';  // Import the ZmanimDebug page
+import Suggestions from './pages/Suggestions';  // Import the Suggestions page
 import MasterAdminDashboard from './pages/MasterAdminDashboard';  // Import Master Admin Dashboard
 import GlobalMemorialSettings from './pages/GlobalMemorialSettings';  // Import Global Memorial Settings
 import MasterAdminRoute from './components/MasterAdminRoute';  // Import Master Admin Route Protection
@@ -60,6 +61,7 @@ function App() {
           <Route path="/admin/shul-settings" element={<AdminLayout><ShulSettings /></AdminLayout>} />
           <Route path="/admin/zmanim-settings" element={<AdminLayout><ZmanimSettings /></AdminLayout>} />
           <Route path="/admin/zmanim-debug" element={<AdminLayout><ZmanimDebug /></AdminLayout>} />
+          <Route path="/admin/suggestions" element={<AdminLayout><Suggestions /></AdminLayout>} />
           <Route path="/admin/about" element={<AdminLayout><About /></AdminLayout>} />
           <Route path="/admin/setup" element={<AdminLayout><Setup /></AdminLayout>} />
           <Route path="/admin" element={<AdminLayout><ShulSettings /></AdminLayout>} />
