@@ -5,6 +5,58 @@ import { api } from "../utils/api";
 /* ================= Sizing: set once, all 4 bottom boxes match ================= */
 const SMALL_BOX_H = "h-[200px]"; // <— tweak this value (e.g., 190px / 210px) to fine-tune the exact height
 
+/* ================= FitText component for auto-shrinking text ================= */
+const FitText = ({ children, style = {}, className = "", maxFontSize, minFontSize = 8 }) => {
+  const ref = useRef(null);
+  const [fontSize, setFontSize] = useState(maxFontSize);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const adjustFontSize = () => {
+      // Start with the max font size
+      const baseSize = maxFontSize || parseInt(style.fontSize) || 22;
+      let currentSize = baseSize;
+
+      // Reset to base size first
+      element.style.fontSize = `${baseSize}px`;
+
+      // Force a reflow to get accurate measurements
+      void element.offsetWidth;
+
+      // Shrink until text fits (with a small buffer for safety)
+      while (element.scrollWidth > (element.clientWidth + 1) && currentSize > minFontSize) {
+        currentSize -= 0.5;
+        element.style.fontSize = `${currentSize}px`;
+        void element.offsetWidth; // Force reflow
+      }
+
+      setFontSize(currentSize);
+    };
+
+    // Initial adjustment with a longer delay to ensure DOM is fully rendered
+    const timeout = setTimeout(adjustFontSize, 150);
+
+    // Re-adjust on resize
+    const resizeObserver = new ResizeObserver(() => {
+      setTimeout(adjustFontSize, 100);
+    });
+    resizeObserver.observe(element);
+
+    return () => {
+      clearTimeout(timeout);
+      resizeObserver.disconnect();
+    };
+  }, [children, style.fontSize, maxFontSize, minFontSize]);
+
+  return (
+    <div ref={ref} className={className} style={{ ...style, fontSize: `${fontSize}px`, minHeight: 'fit-content' }}>
+      {children}
+    </div>
+  );
+};
+
 /* ================= Auto-scroll container ================= */
 const AutoScrollContainer = ({ children, className = "", style = {}, dir }) => {
   const containerRef = useRef(null);
@@ -434,9 +486,9 @@ export default function ShulDisplay() {
       </div>
 
       {/* Main layout */}
-      <div className="mx-auto max-w-[1800px] w-full px-8 pt-6 pb-6 flex-1 overflow-hidden flex items-center">
+      <div className="mx-auto max-w-[1800px] w-full px-4 lg:px-8 pt-4 lg:pt-6 pb-20 lg:pb-6 flex-1 overflow-y-auto lg:overflow-hidden flex items-start lg:items-center">
 
-        <div className="w-full grid grid-cols-[minmax(300px,27%)_minmax(0,54%)_minmax(300px,27%)] gap-8">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(300px,27%)_minmax(0,54%)_minmax(300px,27%)] gap-4 lg:gap-8">
 
           {/* LEFT COLUMN */}
           <div className="">
@@ -459,7 +511,7 @@ export default function ShulDisplay() {
                     );
                   }
                   return (
-                    <div key={i} className="grid grid-cols-[1fr_auto_1fr]" style={box1TextStyle}>
+                    <FitText key={i} className="grid grid-cols-[1fr_auto_1fr]" style={box1TextStyle} maxFontSize={shul.box1_text_size || 22}>
                       {isHebrewLanguage ? (
                         <>
                           <div className="text-left tabular-nums whitespace-nowrap">{r.time}</div>
@@ -473,7 +525,7 @@ export default function ShulDisplay() {
                           <div className="text-right tabular-nums whitespace-nowrap">{r.time}</div>
                         </>
                       )}
-                    </div>
+                    </FitText>
                   );
                 })}
               </AutoScrollContainer>
@@ -494,7 +546,7 @@ export default function ShulDisplay() {
                     );
                   }
                   return (
-                    <div key={i} className="grid grid-cols-2" style={box3TextStyle}>
+                    <FitText key={i} className="grid grid-cols-2" style={box3TextStyle} maxFontSize={shul.box3_text_size || 18}>
                       {isHebrewLanguage ? (
                         <>
                           <div className="text-left pl-2 tabular-nums whitespace-nowrap">{r.value}</div>
@@ -506,7 +558,7 @@ export default function ShulDisplay() {
                           <div className="text-right pr-2 tabular-nums whitespace-nowrap">{r.value}</div>
                         </>
                       )}
-                    </div>
+                    </FitText>
                   );
                 }) : null}
               </AutoScrollContainer>
@@ -547,7 +599,11 @@ export default function ShulDisplay() {
                 <div className="text-center mb-2 text-[20px]" dir="rtl" style={box1TitleStyle}>לעילוי נשמת</div>
                 <div className={`rounded-xl border-[3px] p-6 ${SMALL_BOX_H} flex flex-col`} style={{ borderColor: outlineColor, backgroundColor: boxesBackgroundColor || 'transparent' }}>
                   <AutoScrollContainer className="space-y-2 text-center flex-1" dir="rtl">
-                    {ilui.length ? ilui.map((n, i) => <div key={i} className="whitespace-nowrap" style={centerBoxTextStyle}>{n}</div>) : <div>—</div>}
+                    {ilui.length ? ilui.map((n, i) => (
+                      <FitText key={i} style={centerBoxTextStyle} maxFontSize={18}>
+                        <div className="whitespace-nowrap">{n}</div>
+                      </FitText>
+                    )) : <div>—</div>}
                   </AutoScrollContainer>
                 </div>
               </div>
@@ -555,7 +611,11 @@ export default function ShulDisplay() {
                 <div className="text-center mb-2 text-[20px]" dir="rtl" style={box1TitleStyle}>רפואה שלמה</div>
                 <div className={`rounded-xl border-[3px] p-6 ${SMALL_BOX_H} flex flex-col`} style={{ borderColor: outlineColor, backgroundColor: boxesBackgroundColor || 'transparent' }}>
                   <AutoScrollContainer className="space-y-2 text-center flex-1" dir="rtl">
-                    {refuah.length ? refuah.map((n, i) => <div key={i} className="whitespace-nowrap" style={centerBoxTextStyle}>{n}</div>) : <div>—</div>}
+                    {refuah.length ? refuah.map((n, i) => (
+                      <FitText key={i} style={centerBoxTextStyle} maxFontSize={18}>
+                        <div className="whitespace-nowrap">{n}</div>
+                      </FitText>
+                    )) : <div>—</div>}
                   </AutoScrollContainer>
                 </div>
               </div>
@@ -580,7 +640,7 @@ export default function ShulDisplay() {
                     );
                   }
                   return (
-                    <div key={i} className="grid grid-cols-[1fr_auto_1fr]" style={box2TextStyle}>
+                    <FitText key={i} className="grid grid-cols-[1fr_auto_1fr]" style={box2TextStyle} maxFontSize={shul.box2_text_size || 22}>
                       {isHebrewLanguage ? (
                         <>
                           <div className="text-left tabular-nums whitespace-nowrap">{r.time}</div>
@@ -594,7 +654,7 @@ export default function ShulDisplay() {
                           <div className="text-right tabular-nums whitespace-nowrap">{r.time}</div>
                         </>
                       )}
-                    </div>
+                    </FitText>
                   );
                 })}
               </AutoScrollContainer>
@@ -615,7 +675,7 @@ export default function ShulDisplay() {
                     );
                   }
                   return (
-                    <div key={i} className="grid grid-cols-2" style={box4TextStyle}>
+                    <FitText key={i} className="grid grid-cols-2" style={box4TextStyle} maxFontSize={shul.box4_text_size || 18}>
                       {isHebrewLanguage ? (
                         <>
                           <div className="text-left pl-2 tabular-nums whitespace-nowrap">{r.value}</div>
@@ -627,7 +687,7 @@ export default function ShulDisplay() {
                           <div className="text-right pr-2 tabular-nums whitespace-nowrap">{r.value}</div>
                         </>
                       )}
-                    </div>
+                    </FitText>
                   );
                 }) : null}
               </AutoScrollContainer>

@@ -138,7 +138,7 @@ function CompleteRegistration() {
 
   if (loading) {
     return (
-      <Container maxWidth="sm" className="py-8">
+      <Container maxWidth="sm" sx={{ py: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3 } }}>
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
           <CircularProgress />
         </Box>
@@ -148,9 +148,9 @@ function CompleteRegistration() {
 
   if (validationError) {
     return (
-      <Container maxWidth="sm" className="py-8">
+      <Container maxWidth="sm" sx={{ py: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3 } }}>
         <Card>
-          <CardContent className="p-8">
+          <CardContent sx={{ p: { xs: 3, sm: 4, md: 6 } }}>
             <Typography variant="h4" component="h1" gutterBottom align="center" color="error">
               Invalid Registration Link
             </Typography>
@@ -167,25 +167,25 @@ function CompleteRegistration() {
   }
 
   return (
-    <Container maxWidth="sm" className="py-8">
+    <Container maxWidth="sm" sx={{ py: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3 } }}>
       <Card>
-        <CardContent className="p-8">
-          <Typography variant="h4" component="h1" gutterBottom align="center">
+        <CardContent sx={{ p: { xs: 3, sm: 4, md: 6 } }}>
+          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
             Complete Your Registration
           </Typography>
-          <Typography variant="body1" color="text.secondary" align="center" className="mb-6">
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: { xs: 3, md: 4 }, px: { xs: 1, sm: 0 } }}>
             Welcome, {registrationInfo?.contact_name}! Create your account to get started.
           </Typography>
 
           {error && (
-            <Alert severity="error" className="mb-4">
+            <Alert severity="error" sx={{ mb: { xs: 2, md: 3 } }}>
               {error}
             </Alert>
           )}
 
           <form onSubmit={handleSubmit}>
             {/* Account Information */}
-            <Typography variant="h6" gutterBottom className="mt-4 mb-3">
+            <Typography variant="h6" gutterBottom sx={{ mt: { xs: 2, md: 3 }, mb: { xs: 2, md: 3 }, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
               Account Information
             </Typography>
 
@@ -195,7 +195,7 @@ function CompleteRegistration() {
               disabled
               fullWidth
               variant="outlined"
-              className="mb-4"
+              sx={{ mb: { xs: 2, md: 3 } }}
               helperText="This will be your login email"
             />
 
@@ -208,7 +208,7 @@ function CompleteRegistration() {
               required
               fullWidth
               variant="outlined"
-              className="mb-4"
+              sx={{ mb: { xs: 2, md: 3 } }}
               helperText="Minimum 8 characters"
             />
 
@@ -221,11 +221,11 @@ function CompleteRegistration() {
               required
               fullWidth
               variant="outlined"
-              className="mb-6"
+              sx={{ mb: { xs: 3, md: 4 } }}
             />
 
             {/* Shul Information */}
-            <Typography variant="h6" gutterBottom className="mt-4 mb-3">
+            <Typography variant="h6" gutterBottom sx={{ mt: { xs: 2, md: 3 }, mb: { xs: 2, md: 3 }, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
               Shul Information
             </Typography>
 
@@ -237,11 +237,11 @@ function CompleteRegistration() {
               required
               fullWidth
               variant="outlined"
-              className="mb-4"
+              sx={{ mb: { xs: 2, md: 3 } }}
               helperText="You can change this later in settings"
             />
 
-            <Box className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 2, md: 3 }, mb: { xs: 2, md: 3 } }}>
               <TextField
                 name="zip_code"
                 label="Zip Code"
@@ -292,7 +292,7 @@ function CompleteRegistration() {
               size="large"
               fullWidth
               disabled={submitting}
-              className="mt-6"
+              sx={{ mt: { xs: 3, md: 4 } }}
             >
               {submitting ? (
                 <Box display="flex" alignItems="center" gap={1}>
@@ -305,8 +305,8 @@ function CompleteRegistration() {
             </Button>
 
             {submitting && (
-              <Box className="mt-4" textAlign="center">
-                <Typography variant="body2" color="text.secondary">
+              <Box sx={{ mt: { xs: 2, md: 3 } }} textAlign="center">
+                <Typography variant="body2" color="text.secondary" sx={{ px: { xs: 1, sm: 0 } }}>
                   Please wait while we create your account and calculate the zmanim for your location.
                   <br />
                   This process may take up to 2 minutes...

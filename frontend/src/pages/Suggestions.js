@@ -98,21 +98,21 @@ function Suggestions() {
     header: {
       background: 'linear-gradient(to right, #ffffff 0%, #f8fafc 100%)',
       color: '#1e293b',
-      padding: '32px 40px',
+      padding: 'clamp(24px, 4vw, 32px) clamp(16px, 4vw, 40px)',
       boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
       marginBottom: '0',
       borderBottom: '1px solid #e2e8f0'
     },
     headerTitle: {
-      margin: '0 0 8px 0',
-      fontSize: '28px',
+      margin: '0 0 clamp(6px, 1.5vw, 8px) 0',
+      fontSize: 'clamp(1.5rem, 4vw, 1.75rem)',
       fontWeight: '600',
       letterSpacing: '-0.3px',
       color: '#0f172a'
     },
     headerSubtitle: {
       margin: '0',
-      fontSize: '16px',
+      fontSize: 'clamp(14px, 2.8vw, 16px)',
       fontWeight: '400',
       color: '#64748b',
       lineHeight: '1.6'
@@ -120,43 +120,43 @@ function Suggestions() {
     contentWrapper: {
       maxWidth: '800px',
       margin: '0 auto',
-      padding: '40px 40px',
+      padding: 'clamp(20px, 4vw, 40px)',
     },
     introSection: {
       backgroundColor: '#ffffff',
-      borderRadius: '12px',
-      padding: '32px',
-      marginBottom: '32px',
+      borderRadius: 'clamp(8px, 2vw, 12px)',
+      padding: 'clamp(20px, 4vw, 32px)',
+      marginBottom: 'clamp(24px, 4vw, 32px)',
       boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
       border: '1px solid #e2e8f0'
     },
     introTitle: {
-      fontSize: '20px',
+      fontSize: 'clamp(1.1rem, 3vw, 1.25rem)',
       fontWeight: '600',
       color: '#0f172a',
-      marginBottom: '16px',
+      marginBottom: 'clamp(12px, 2.5vw, 16px)',
       marginTop: '0'
     },
     introText: {
-      fontSize: '15px',
+      fontSize: 'clamp(14px, 2.8vw, 15px)',
       lineHeight: '1.7',
       color: '#475569',
-      marginBottom: '12px'
+      marginBottom: 'clamp(10px, 2vw, 12px)'
     },
     formCard: {
       backgroundColor: '#ffffff',
-      borderRadius: '12px',
-      padding: '32px',
+      borderRadius: 'clamp(8px, 2vw, 12px)',
+      padding: 'clamp(20px, 4vw, 32px)',
       boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
       border: '1px solid #e2e8f0'
     },
     formGroup: {
-      marginBottom: '24px'
+      marginBottom: 'clamp(18px, 3.5vw, 24px)'
     },
     label: {
       display: 'block',
-      marginBottom: '8px',
-      fontSize: '14px',
+      marginBottom: 'clamp(6px, 1.5vw, 8px)',
+      fontSize: 'clamp(13px, 2.5vw, 14px)',
       fontWeight: '600',
       color: '#374151'
     },
@@ -166,32 +166,32 @@ function Suggestions() {
     },
     input: {
       width: '100%',
-      padding: '10px 14px',
+      padding: 'clamp(8px, 2vw, 10px) clamp(12px, 2.5vw, 14px)',
       border: '1px solid #d1d5db',
-      borderRadius: '8px',
-      fontSize: '15px',
+      borderRadius: 'clamp(6px, 1.5vw, 8px)',
+      fontSize: 'clamp(14px, 2.8vw, 15px)',
       fontFamily: 'inherit',
       transition: 'border-color 0.2s, box-shadow 0.2s',
       boxSizing: 'border-box'
     },
     textarea: {
       width: '100%',
-      padding: '10px 14px',
+      padding: 'clamp(8px, 2vw, 10px) clamp(12px, 2.5vw, 14px)',
       border: '1px solid #d1d5db',
-      borderRadius: '8px',
-      fontSize: '15px',
+      borderRadius: 'clamp(6px, 1.5vw, 8px)',
+      fontSize: 'clamp(14px, 2.8vw, 15px)',
       fontFamily: 'inherit',
-      minHeight: '150px',
+      minHeight: 'clamp(120px, 25vw, 150px)',
       resize: 'vertical',
       transition: 'border-color 0.2s, box-shadow 0.2s',
       boxSizing: 'border-box'
     },
     select: {
       width: '100%',
-      padding: '10px 14px',
+      padding: 'clamp(8px, 2vw, 10px) clamp(12px, 2.5vw, 14px)',
       border: '1px solid #d1d5db',
-      borderRadius: '8px',
-      fontSize: '15px',
+      borderRadius: 'clamp(6px, 1.5vw, 8px)',
+      fontSize: 'clamp(14px, 2.8vw, 15px)',
       fontFamily: 'inherit',
       backgroundColor: '#ffffff',
       cursor: 'pointer',
@@ -200,16 +200,16 @@ function Suggestions() {
     },
     error: {
       color: '#ef4444',
-      fontSize: '13px',
-      marginTop: '6px'
+      fontSize: 'clamp(12px, 2.3vw, 13px)',
+      marginTop: 'clamp(4px, 1vw, 6px)'
     },
     submitButton: {
       backgroundColor: submitting ? '#9ca3af' : '#3b82f6',
       color: 'white',
       border: 'none',
-      borderRadius: '8px',
-      padding: '12px 32px',
-      fontSize: '15px',
+      borderRadius: 'clamp(6px, 1.5vw, 8px)',
+      padding: 'clamp(10px, 2.5vw, 12px) clamp(24px, 5vw, 32px)',
+      fontSize: 'clamp(14px, 2.8vw, 15px)',
       fontWeight: '600',
       cursor: submitting ? 'not-allowed' : 'pointer',
       transition: 'all 0.2s',
@@ -217,22 +217,22 @@ function Suggestions() {
       width: '100%'
     },
     successMessage: {
-      padding: '16px 20px',
-      marginBottom: '24px',
+      padding: 'clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 20px)',
+      marginBottom: 'clamp(18px, 3.5vw, 24px)',
       backgroundColor: '#d1fae5',
       color: '#065f46',
-      borderRadius: '8px',
-      fontSize: '14px',
+      borderRadius: 'clamp(6px, 1.5vw, 8px)',
+      fontSize: 'clamp(13px, 2.5vw, 14px)',
       fontWeight: '500',
       border: '1px solid #a7f3d0'
     },
     errorMessage: {
-      padding: '16px 20px',
-      marginBottom: '24px',
+      padding: 'clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 20px)',
+      marginBottom: 'clamp(18px, 3.5vw, 24px)',
       backgroundColor: '#fee2e2',
       color: '#991b1b',
-      borderRadius: '8px',
-      fontSize: '14px',
+      borderRadius: 'clamp(6px, 1.5vw, 8px)',
+      fontSize: 'clamp(13px, 2.5vw, 14px)',
       fontWeight: '500',
       border: '1px solid #fecaca'
     }

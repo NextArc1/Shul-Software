@@ -141,7 +141,7 @@ function ZmanimDebug() {
 
   const renderBasicZmanimTab = () => (
     <div style={{ overflowX: 'auto' }}>
-      <h3 style={{ marginBottom: '10px' }}>Basic Zmanim Times (14 fields)</h3>
+      <h3 style={{ marginBottom: 'clamp(8px, 2vw, 10px)', fontSize: 'clamp(1.1rem, 3vw, 1.25rem)' }}>Basic Zmanim Times (14 fields)</h3>
       <table style={tableStyle}>
         <thead>
           <tr style={{ backgroundColor: '#dbeafe' }}>
@@ -189,7 +189,7 @@ function ZmanimDebug() {
 
   const renderAdditionalZmanimTab = () => (
     <div style={{ overflowX: 'auto' }}>
-      <h3 style={{ marginBottom: '10px' }}>Additional Zmanim (12 fields)</h3>
+      <h3 style={{ marginBottom: 'clamp(8px, 2vw, 10px)', fontSize: 'clamp(1.1rem, 3vw, 1.25rem)' }}>Additional Zmanim (12 fields)</h3>
       <table style={tableStyle}>
         <thead>
           <tr style={{ backgroundColor: '#dbeafe' }}>
@@ -229,7 +229,7 @@ function ZmanimDebug() {
         </tbody>
       </table>
 
-      <h3 style={{ marginTop: '30px', marginBottom: '10px' }}>Halachic Hours (3 fields)</h3>
+      <h3 style={{ marginTop: 'clamp(24px, 5vw, 30px)', marginBottom: 'clamp(8px, 2vw, 10px)', fontSize: 'clamp(1.1rem, 3vw, 1.25rem)' }}>Halachic Hours (3 fields)</h3>
       <table style={tableStyle}>
         <thead>
           <tr style={{ backgroundColor: '#dbeafe' }}>
@@ -255,7 +255,7 @@ function ZmanimDebug() {
 
   const renderJewishCalendarTab = () => (
     <div style={{ overflowX: 'auto' }}>
-      <h3 style={{ marginBottom: '10px' }}>Jewish Date Info (5 fields)</h3>
+      <h3 style={{ marginBottom: 'clamp(8px, 2vw, 10px)', fontSize: 'clamp(1.1rem, 3vw, 1.25rem)' }}>Jewish Date Info (5 fields)</h3>
       <table style={tableStyle}>
         <thead>
           <tr style={{ backgroundColor: '#dbeafe' }}>
@@ -281,7 +281,7 @@ function ZmanimDebug() {
         </tbody>
       </table>
 
-      <h3 style={{ marginTop: '30px', marginBottom: '10px' }}>Special Days & Holidays (3 fields + 8 flags)</h3>
+      <h3 style={{ marginTop: 'clamp(24px, 5vw, 30px)', marginBottom: 'clamp(8px, 2vw, 10px)', fontSize: 'clamp(1.1rem, 3vw, 1.25rem)' }}>Special Days & Holidays (3 fields + 8 flags)</h3>
       <table style={tableStyle}>
         <thead>
           <tr style={{ backgroundColor: '#dbeafe' }}>
@@ -319,7 +319,7 @@ function ZmanimDebug() {
         </tbody>
       </table>
 
-      <h3 style={{ marginTop: '30px', marginBottom: '10px' }}>Molad & Kiddush Levana (4 fields)</h3>
+      <h3 style={{ marginTop: 'clamp(24px, 5vw, 30px)', marginBottom: 'clamp(8px, 2vw, 10px)', fontSize: 'clamp(1.1rem, 3vw, 1.25rem)' }}>Molad & Kiddush Levana (4 fields)</h3>
       <table style={tableStyle}>
         <thead>
           <tr style={{ backgroundColor: '#dbeafe' }}>
@@ -347,7 +347,7 @@ function ZmanimDebug() {
 
   const renderLimudimTab = () => (
     <div style={{ overflowX: 'auto' }}>
-      <h3 style={{ marginBottom: '10px' }}>Learning Schedules (8 fields)</h3>
+      <h3 style={{ marginBottom: 'clamp(8px, 2vw, 10px)', fontSize: 'clamp(1.1rem, 3vw, 1.25rem)' }}>Learning Schedules (8 fields)</h3>
       <table style={tableStyle}>
         <thead>
           <tr style={{ backgroundColor: '#dbeafe' }}>
@@ -391,14 +391,14 @@ function ZmanimDebug() {
     header: {
       background: 'linear-gradient(to right, #ffffff 0%, #f8fafc 100%)',
       color: '#1e293b',
-      padding: '32px 40px',
+      padding: 'clamp(24px, 4vw, 32px) clamp(16px, 4vw, 40px)',
       boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
       marginBottom: '0',
       borderBottom: '1px solid #e2e8f0'
     },
     headerTitle: {
       margin: '0',
-      fontSize: '28px',
+      fontSize: 'clamp(1.5rem, 4vw, 1.75rem)',
       fontWeight: '600',
       letterSpacing: '-0.3px',
       color: '#0f172a'
@@ -406,7 +406,7 @@ function ZmanimDebug() {
     contentWrapper: {
       maxWidth: '100%',
       margin: '0 auto',
-      padding: '40px 40px 40px',
+      padding: 'clamp(20px, 4vw, 40px)',
       overflow: 'auto'
     }
   };
@@ -418,40 +418,40 @@ function ZmanimDebug() {
       </div>
 
       <div style={pageStyles.contentWrapper}>
-      <div style={{ marginBottom: '20px', display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500' }}>
+      <div style={{ marginBottom: 'clamp(16px, 3vw, 20px)', display: 'flex', gap: 'clamp(10px, 2vw, 15px)', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', gap: 'clamp(10px, 2vw, 15px)', alignItems: 'center', flexWrap: 'wrap' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 'clamp(6px, 1.5vw, 8px)', fontSize: 'clamp(13px, 2.5vw, 14px)', fontWeight: '500' }}>
             Start Date:
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+              style={{ padding: 'clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 10px)', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: 'clamp(13px, 2.5vw, 14px)' }}
             />
           </label>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 'clamp(6px, 1.5vw, 8px)', fontSize: 'clamp(13px, 2.5vw, 14px)', fontWeight: '500' }}>
             End Date:
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
+              style={{ padding: 'clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 10px)', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: 'clamp(13px, 2.5vw, 14px)' }}
             />
           </label>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(6px, 1.5vw, 8px)' }}>
           <button
             onClick={handleExtendZmanim}
             disabled={extending}
             style={{
-              padding: '8px 16px',
+              padding: 'clamp(8px, 2vw, 10px) clamp(12px, 3vw, 16px)',
               backgroundColor: extending ? '#9ca3af' : '#10b981',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
-              fontSize: '14px',
+              fontSize: 'clamp(13px, 2.5vw, 14px)',
               fontWeight: '600',
               cursor: extending ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s',
@@ -477,12 +477,12 @@ function ZmanimDebug() {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '20px',
-              height: '20px',
+              width: 'clamp(18px, 4vw, 20px)',
+              height: 'clamp(18px, 4vw, 20px)',
               borderRadius: '50%',
               backgroundColor: '#3b82f6',
               color: 'white',
-              fontSize: '12px',
+              fontSize: 'clamp(11px, 2.5vw, 12px)',
               fontWeight: 'bold',
               cursor: 'help',
               userSelect: 'none'
@@ -495,12 +495,12 @@ function ZmanimDebug() {
 
       {extendMessage && (
         <div style={{
-          padding: '12px 16px',
-          marginBottom: '20px',
+          padding: 'clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 16px)',
+          marginBottom: 'clamp(16px, 3vw, 20px)',
           backgroundColor: extendMessage.includes('Error') ? '#fee2e2' : '#d1fae5',
           color: extendMessage.includes('Error') ? '#991b1b' : '#065f46',
           borderRadius: '6px',
-          fontSize: '14px',
+          fontSize: 'clamp(13px, 2.5vw, 14px)',
           fontWeight: '500',
           border: `1px solid ${extendMessage.includes('Error') ? '#fecaca' : '#a7f3d0'}`
         }}>
@@ -509,7 +509,7 @@ function ZmanimDebug() {
       )}
 
       {/* Tab Navigation */}
-      <div style={{ marginBottom: '20px', borderBottom: '2px solid #ddd' }}>
+      <div style={{ marginBottom: 'clamp(16px, 3vw, 20px)', borderBottom: '2px solid #ddd', display: 'flex', flexWrap: 'wrap', gap: 'clamp(4px, 1vw, 5px)' }}>
         <button
           onClick={() => setActiveTab('zmanim')}
           style={{
@@ -566,7 +566,7 @@ function ZmanimDebug() {
 
       {!loading && !error && zmanimData.length > 0 && (
         <div>
-          <p style={{ marginBottom: '20px', fontWeight: 'bold', fontSize: '16px' }}>
+          <p style={{ marginBottom: 'clamp(16px, 3vw, 20px)', fontWeight: 'bold', fontSize: 'clamp(14px, 3vw, 16px)' }}>
             Showing {zmanimData.length} days of complete zmanim data (64 fields per day)
           </p>
 
@@ -584,13 +584,13 @@ function ZmanimDebug() {
 const tableStyle = {
   width: '100%',
   borderCollapse: 'collapse',
-  fontSize: '11px',
+  fontSize: 'clamp(10px, 2vw, 11px)',
   border: '1px solid #ddd',
-  marginBottom: '20px',
+  marginBottom: 'clamp(16px, 3vw, 20px)',
 };
 
 const headerStyle = {
-  padding: '8px',
+  padding: 'clamp(6px, 1.5vw, 8px)',
   textAlign: 'left',
   borderBottom: '2px solid #ddd',
   fontWeight: 'bold',
@@ -600,18 +600,17 @@ const headerStyle = {
 };
 
 const cellStyle = {
-  padding: '6px 8px',
+  padding: 'clamp(5px, 1.2vw, 6px) clamp(6px, 1.5vw, 8px)',
   borderRight: '1px solid #eee',
   whiteSpace: 'nowrap',
 };
 
 const tabButtonStyle = {
-  padding: '10px 20px',
+  padding: 'clamp(8px, 2vw, 10px) clamp(12px, 3vw, 20px)',
   border: 'none',
   cursor: 'pointer',
-  fontSize: '14px',
+  fontSize: 'clamp(12px, 2.5vw, 14px)',
   fontWeight: 'bold',
-  marginRight: '5px',
   borderRadius: '4px 4px 0 0',
   transition: 'all 0.3s',
 };

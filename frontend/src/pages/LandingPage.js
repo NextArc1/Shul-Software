@@ -96,26 +96,44 @@ const LandingPage = () => {
       }}
     >
       {/* Hero Section */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box textAlign="center" mb={6}>
+      <Container maxWidth="lg" sx={{ py: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3 } }}>
+        <Box textAlign="center" mb={{ xs: 4, md: 6 }}>
           <Typography
             variant="h2"
             component="h1"
             gutterBottom
-            sx={{ fontWeight: 'bold', mb: 3 }}
+            sx={{
+              fontWeight: 'bold',
+              mb: { xs: 2, md: 3 },
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3.75rem' }
+            }}
           >
             Shul Schedule
           </Typography>
           <Typography
             variant="h5"
             component="h2"
-            sx={{ mb: 4, color: '#ffc764', fontWeight: 300 }}
+            sx={{
+              mb: { xs: 3, md: 4 },
+              color: '#ffc764',
+              fontWeight: 300,
+              fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.5rem' },
+              px: { xs: 1, sm: 0 }
+            }}
           >
             The Complete Zmanim & Luach Display System for Your Shul
           </Typography>
           <Typography
             variant="h6"
-            sx={{ mb: 3, maxWidth: '900px', mx: 'auto', color: 'rgba(255,255,255,0.9)', lineHeight: 1.8 }}
+            sx={{
+              mb: { xs: 2, md: 3 },
+              maxWidth: '900px',
+              mx: 'auto',
+              color: 'rgba(255,255,255,0.9)',
+              lineHeight: 1.8,
+              fontSize: { xs: '1rem', sm: '1.15rem', md: '1.25rem' },
+              px: { xs: 2, sm: 0 }
+            }}
           >
             Give your Shul a professional display showing accurate zmanim, davening times,
             shiurim schedules, the daily Daf Yomi, and Yomim Tovim—all calculated precisely for your
@@ -128,7 +146,7 @@ const LandingPage = () => {
 
           </Typography>
 
-          <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap', mb: 4 }}>
+          <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, justifyContent: 'center', flexWrap: 'wrap', mb: { xs: 3, md: 4 }, px: { xs: 2, sm: 0 } }}>
             <Button
               variant="contained"
               size="large"
@@ -136,9 +154,9 @@ const LandingPage = () => {
               sx={{
                 backgroundColor: '#ffc764',
                 color: '#162A45',
-                fontSize: '1.2rem',
-                px: 6,
-                py: 2,
+                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+                px: { xs: 4, sm: 5, md: 6 },
+                py: { xs: 1.5, md: 2 },
                 fontWeight: 'bold',
                 '&:hover': {
                   backgroundColor: '#ffb732'
@@ -154,9 +172,9 @@ const LandingPage = () => {
               sx={{
                 borderColor: 'white',
                 color: 'white',
-                fontSize: '1.2rem',
-                px: 6,
-                py: 2,
+                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+                px: { xs: 4, sm: 5, md: 6 },
+                py: { xs: 1.5, md: 2 },
                 '&:hover': {
                   borderColor: '#ffc764',
                   color: '#ffc764',
@@ -174,7 +192,7 @@ const LandingPage = () => {
         </Box>
 
         {/* Main Features Grid */}
-        <Grid container spacing={4} sx={{ mb: 10 }}>
+        <Grid container spacing={{ xs: 3, md: 4 }} sx={{ mb: { xs: 6, md: 10 } }}>
           {mainFeatures.map((feature, index) => (
             <Grid item xs={12} sm={6} md={3} key={index}>
               <Card
@@ -210,15 +228,15 @@ const LandingPage = () => {
         </Grid>
 
         {/* Detailed Features Sections */}
-        <Box sx={{ my: 10 }}>
-          <Divider sx={{ my: 8, borderColor: 'rgba(255,255,255,0.2)' }} />
+        <Box sx={{ my: { xs: 6, md: 10 } }}>
+          <Divider sx={{ my: { xs: 5, md: 8 }, borderColor: 'rgba(255,255,255,0.2)' }} />
 
           {/* Zmanim Section */}
-          <Grid container spacing={6} alignItems="center" sx={{ mb: 10 }}>
+          <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center" sx={{ mb: { xs: 6, md: 10 } }}>
             <Grid item xs={12} md={6}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <AccessTimeIcon sx={{ fontSize: 50, color: '#ffc764', mr: 2 }} />
-                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, md: 3 }, px: { xs: 2, sm: 0 } }}>
+                <AccessTimeIcon sx={{ fontSize: { xs: 40, md: 50 }, color: '#ffc764', mr: 2 }} />
+                <Typography variant="h4" sx={{ fontWeight: 'bold', fontSize: { xs: '1.75rem', md: '2.125rem' } }}>
                   Over 25 Zmanim Calculated Daily
                 </Typography>
               </Box>
@@ -251,10 +269,10 @@ const LandingPage = () => {
             </Grid>
           </Grid>
 
-          <Divider sx={{ my: 8, borderColor: 'rgba(255,255,255,0.2)' }} />
+          <Divider sx={{ my: { xs: 5, md: 8 }, borderColor: 'rgba(255,255,255,0.2)' }} />
 
           {/* Customization Section */}
-          <Grid container spacing={6} alignItems="center" sx={{ mb: 10 }}>
+          <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center" sx={{ mb: { xs: 6, md: 10 } }}>
             <Grid item xs={12} md={6} order={{ xs: 2, md: 1 }}>
               <Card sx={{ backgroundColor: 'rgba(255,255,255,0.95)' }}>
                 <CardContent sx={{ p: 3 }}>
@@ -275,9 +293,9 @@ const LandingPage = () => {
               </Card>
             </Grid>
             <Grid item xs={12} md={6} order={{ xs: 1, md: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <PaletteIcon sx={{ fontSize: 50, color: '#ffc764', mr: 2 }} />
-                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, md: 3 }, px: { xs: 2, sm: 0 } }}>
+                <PaletteIcon sx={{ fontSize: { xs: 40, md: 50 }, color: '#ffc764', mr: 2 }} />
+                <Typography variant="h4" sx={{ fontWeight: 'bold', fontSize: { xs: '1.75rem', md: '2.125rem' } }}>
                   Fully Customizable Design
                 </Typography>
               </Box>
@@ -294,14 +312,14 @@ const LandingPage = () => {
             </Grid>
           </Grid>
 
-          <Divider sx={{ my: 8, borderColor: 'rgba(255,255,255,0.2)' }} />
+          <Divider sx={{ my: { xs: 5, md: 8 }, borderColor: 'rgba(255,255,255,0.2)' }} />
 
           {/* Admin Portal Section */}
-          <Grid container spacing={6} alignItems="center" sx={{ mb: 10 }}>
+          <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center" sx={{ mb: { xs: 6, md: 10 } }}>
             <Grid item xs={12} md={6}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <ViewQuiltIcon sx={{ fontSize: 50, color: '#ffc764', mr: 2 }} />
-                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, md: 3 }, px: { xs: 2, sm: 0 } }}>
+                <ViewQuiltIcon sx={{ fontSize: { xs: 40, md: 50 }, color: '#ffc764', mr: 2 }} />
+                <Typography variant="h4" sx={{ fontWeight: 'bold', fontSize: { xs: '1.75rem', md: '2.125rem' } }}>
                   Simple Admin Dashboard
                 </Typography>
               </Box>
@@ -339,11 +357,11 @@ const LandingPage = () => {
         </Box>
 
         {/* How It Works */}
-        <Box textAlign="center" sx={{ my: 10 }}>
-          <Typography variant="h3" gutterBottom sx={{ mb: 6, fontWeight: 'bold' }}>
+        <Box textAlign="center" sx={{ my: { xs: 6, md: 10 }, px: { xs: 2, sm: 0 } }}>
+          <Typography variant="h3" gutterBottom sx={{ mb: { xs: 4, md: 6 }, fontWeight: 'bold', fontSize: { xs: '2rem', md: '3rem' } }}>
             Setup in 3 Easy Steps
           </Typography>
-          <Grid container spacing={4}>
+          <Grid container spacing={{ xs: 3, md: 4 }}>
             <Grid item xs={12} md={4}>
               <Card sx={{ backgroundColor: 'rgba(255,255,255,0.95)', height: '100%' }}>
                 <CardContent sx={{ p: 4 }}>
@@ -405,11 +423,11 @@ const LandingPage = () => {
         </Box>
 
         {/* Final CTA */}
-        <Box textAlign="center" sx={{ my: 10, py: 8, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.05)' }}>
-          <Typography variant="h3" gutterBottom sx={{ mb: 3, fontWeight: 'bold' }}>
+        <Box textAlign="center" sx={{ my: { xs: 6, md: 10 }, py: { xs: 5, md: 8 }, px: { xs: 2, sm: 3 }, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.05)' }}>
+          <Typography variant="h3" gutterBottom sx={{ mb: { xs: 2, md: 3 }, fontWeight: 'bold', fontSize: { xs: '1.75rem', md: '3rem' } }}>
             Ready to Upgrade Your Shul?
           </Typography>
-          <Typography variant="h6" sx={{ mb: 5, color: 'rgba(255,255,255,0.8)', maxWidth: '700px', mx: 'auto' }}>
+          <Typography variant="h6" sx={{ mb: { xs: 4, md: 5 }, color: 'rgba(255,255,255,0.8)', maxWidth: '700px', mx: 'auto', fontSize: { xs: '1rem', md: '1.25rem' } }}>
             Join shuls worldwide using Shul Schedule to provide their Shul with accurate,
             beautiful, and always-updated zmanim displays.
           </Typography>
@@ -420,9 +438,9 @@ const LandingPage = () => {
             sx={{
               backgroundColor: '#ffc764',
               color: '#162A45',
-              fontSize: '1.3rem',
-              px: 8,
-              py: 2.5,
+              fontSize: { xs: '1.1rem', md: '1.3rem' },
+              px: { xs: 5, md: 8 },
+              py: { xs: 2, md: 2.5 },
               fontWeight: 'bold',
               '&:hover': {
                 backgroundColor: '#ffb732'

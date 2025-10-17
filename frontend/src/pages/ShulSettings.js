@@ -12,14 +12,14 @@ function ShulSettings() {
     header: {
       background: 'linear-gradient(to right, #ffffff 0%, #f8fafc 100%)',
       color: '#1e293b',
-      padding: '32px 40px',
+      padding: 'clamp(24px, 4vw, 32px) clamp(16px, 4vw, 40px)',
       boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
       marginBottom: '0',
       borderBottom: '1px solid #e2e8f0'
     },
     headerTitle: {
       margin: '0',
-      fontSize: '28px',
+      fontSize: 'clamp(1.5rem, 4vw, 1.75rem)',
       fontWeight: '600',
       letterSpacing: '-0.3px',
       color: '#0f172a'
@@ -27,7 +27,7 @@ function ShulSettings() {
     contentWrapper: {
       maxWidth: '1400px',
       margin: '0 auto',
-      padding: '40px 40px 40px'
+      padding: 'clamp(20px, 4vw, 40px)'
     }
   };
 

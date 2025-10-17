@@ -11,107 +11,109 @@ const About = () => {
     heroSection: {
       background: 'linear-gradient(to right, #ffffff 0%, #f8fafc 100%)',
       color: '#1e293b',
-      padding: '48px 40px',
+      padding: 'clamp(32px, 6vw, 48px) clamp(20px, 5vw, 40px)',
       textAlign: 'center',
       boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
       borderBottom: '1px solid #e2e8f0'
     },
     heroTitle: {
-      fontSize: '36px',
+      fontSize: 'clamp(1.75rem, 5vw, 2.25rem)',
       fontWeight: '600',
       marginBottom: '12px',
       letterSpacing: '-0.5px',
       color: '#0f172a'
     },
     heroSubtitle: {
-      fontSize: '18px',
+      fontSize: 'clamp(0.95rem, 2.5vw, 1.125rem)',
       color: '#64748b',
       maxWidth: '800px',
       margin: '0 auto',
-      lineHeight: '1.6'
+      lineHeight: '1.6',
+      padding: '0 16px'
     },
     contentWrapper: {
       maxWidth: '1200px',
       margin: '0 auto',
-      padding: '60px 40px'
+      padding: 'clamp(32px, 6vw, 60px) clamp(16px, 4vw, 40px)'
     },
     section: {
-      marginBottom: '80px'
+      marginBottom: 'clamp(40px, 8vw, 80px)'
     },
     sectionTitle: {
-      fontSize: '32px',
+      fontSize: 'clamp(1.5rem, 4vw, 2rem)',
       fontWeight: '700',
       color: '#2c3e50',
       marginBottom: '20px',
       textAlign: 'center'
     },
     sectionDescription: {
-      fontSize: '18px',
+      fontSize: 'clamp(0.95rem, 2.5vw, 1.125rem)',
       color: '#6b7280',
       textAlign: 'center',
       maxWidth: '800px',
       margin: '0 auto 50px',
-      lineHeight: '1.8'
+      lineHeight: '1.8',
+      padding: '0 16px'
     },
     featuresGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-      gap: '30px',
-      marginTop: '40px'
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+      gap: 'clamp(20px, 4vw, 30px)',
+      marginTop: 'clamp(24px, 5vw, 40px)'
     },
     featureCard: {
       backgroundColor: 'white',
       borderRadius: '16px',
-      padding: '40px 30px',
+      padding: 'clamp(24px, 5vw, 40px) clamp(20px, 4vw, 30px)',
       boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
       border: '1px solid #e5e7eb',
       transition: 'all 0.3s ease',
       textAlign: 'center'
     },
     featureIcon: {
-      fontSize: '48px',
-      marginBottom: '20px'
+      fontSize: 'clamp(36px, 7vw, 48px)',
+      marginBottom: '16px'
     },
     featureTitle: {
-      fontSize: '20px',
+      fontSize: 'clamp(1.05rem, 3vw, 1.25rem)',
       fontWeight: '600',
       color: '#2c3e50',
       marginBottom: '12px'
     },
     featureDescription: {
-      fontSize: '15px',
+      fontSize: 'clamp(0.875rem, 2.5vw, 0.9375rem)',
       color: '#6b7280',
       lineHeight: '1.6'
     },
     statsGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-      gap: '30px',
-      marginTop: '40px'
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))',
+      gap: 'clamp(16px, 4vw, 30px)',
+      marginTop: 'clamp(24px, 5vw, 40px)'
     },
     statCard: {
       backgroundColor: 'white',
       borderRadius: '12px',
-      padding: '30px',
+      padding: 'clamp(20px, 4vw, 30px)',
       textAlign: 'center',
       boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
       border: '2px solid #3b82f6'
     },
     statNumber: {
-      fontSize: '40px',
+      fontSize: 'clamp(2rem, 6vw, 2.5rem)',
       fontWeight: '700',
       color: '#3b82f6',
       marginBottom: '8px'
     },
     statLabel: {
-      fontSize: '16px',
+      fontSize: 'clamp(0.875rem, 2.5vw, 1rem)',
       color: '#6b7280',
       fontWeight: '500'
     },
     techSection: {
       backgroundColor: 'white',
       borderRadius: '16px',
-      padding: '50px',
+      padding: 'clamp(24px, 5vw, 50px)',
       boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
       border: '1px solid #e5e7eb'
     },
@@ -141,26 +143,27 @@ const About = () => {
     ctaSection: {
       background: 'linear-gradient(135deg, #d4af37 0%, #f5d66d 100%)',
       borderRadius: '16px',
-      padding: '60px 40px',
+      padding: 'clamp(40px, 7vw, 60px) clamp(24px, 5vw, 40px)',
       textAlign: 'center',
       boxShadow: '0 4px 20px rgba(212,175,55,0.3)'
     },
     ctaTitle: {
-      fontSize: '32px',
+      fontSize: 'clamp(1.5rem, 4vw, 2rem)',
       fontWeight: '700',
       color: '#2a1a06',
       marginBottom: '20px'
     },
     ctaDescription: {
-      fontSize: '18px',
+      fontSize: 'clamp(0.95rem, 2.5vw, 1.125rem)',
       color: '#3a2a16',
       marginBottom: '30px',
       maxWidth: '600px',
-      margin: '0 auto 30px'
+      margin: '0 auto 30px',
+      padding: '0 16px'
     },
     ctaButton: {
-      padding: '16px 40px',
-      fontSize: '18px',
+      padding: 'clamp(12px, 3vw, 16px) clamp(24px, 5vw, 40px)',
+      fontSize: 'clamp(0.95rem, 2.5vw, 1.125rem)',
       fontWeight: '600',
       backgroundColor: '#3b82f6',
       color: 'white',
@@ -287,7 +290,7 @@ const About = () => {
                 backgroundColor: '#fff8e1',
                 border: '2px solid #d4af37',
                 borderRadius: '12px',
-                padding: '30px',
+                padding: 'clamp(20px, 4vw, 30px)',
                 marginBottom: '30px'
               }}>
                 <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#2a1a06', marginBottom: '15px' }}>
@@ -339,7 +342,7 @@ const About = () => {
                 backgroundColor: '#e3f2fd',
                 border: '2px solid #162A45',
                 borderRadius: '12px',
-                padding: '30px'
+                padding: 'clamp(20px, 4vw, 30px)'
               }}>
                 <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#162A45', marginBottom: '15px' }}>
                   📋 Consult With Your Rabbi

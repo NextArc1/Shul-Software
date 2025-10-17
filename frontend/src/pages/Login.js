@@ -68,18 +68,18 @@ function Login() {
   };
 
   return (
-    <Container maxWidth="sm" className="py-8">
+    <Container maxWidth="sm" sx={{ py: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3 } }}>
       <Card>
-        <CardContent className="p-8">
-          <Typography variant="h4" component="h1" gutterBottom align="center">
+        <CardContent sx={{ p: { xs: 3, sm: 4, md: 6 } }}>
+          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
             Sign In
           </Typography>
-          <Typography variant="body1" color="text.secondary" align="center" className="mb-6">
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: { xs: 3, md: 4 } }}>
             Access your synagogue's admin portal
           </Typography>
 
           {error && (
-            <Alert severity="error" className="mb-4">
+            <Alert severity="error" sx={{ mb: { xs: 2, md: 3 } }}>
               {error}
             </Alert>
           )}
@@ -94,7 +94,7 @@ function Login() {
               required
               fullWidth
               variant="outlined"
-              className="mb-4"
+              sx={{ mb: { xs: 2, md: 3 } }}
               autoComplete="email"
             />
 
@@ -107,7 +107,7 @@ function Login() {
               required
               fullWidth
               variant="outlined"
-              className="mb-6"
+              sx={{ mb: { xs: 3, md: 4 } }}
               autoComplete="current-password"
             />
 
@@ -117,17 +117,17 @@ function Login() {
               size="large"
               fullWidth
               disabled={loading}
-              className="mb-4"
+              sx={{ mb: { xs: 2, md: 3 } }}
             >
               {loading ? 'Signing In...' : 'Sign In'}
             </Button>
 
             {/* Registration Link */}
-            <Typography align="center" className="mt-4">
+            <Typography align="center" sx={{ mt: { xs: 2, md: 3 } }}>
               Don't have an account?{' '}
               <Link
                 to="/register"
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                style={{ color: '#2563eb', fontWeight: 500, textDecoration: 'none' }}
               >
                 Request access
               </Link>

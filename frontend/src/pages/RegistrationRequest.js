@@ -144,9 +144,9 @@ function RegistrationRequest() {
 
   if (success) {
     return (
-      <Container maxWidth="md" className="py-8">
+      <Container maxWidth="md" sx={{ py: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3 } }}>
         <Card>
-          <CardContent className="p-8">
+          <CardContent sx={{ p: { xs: 3, sm: 4, md: 6 } }}>
             <Typography variant="h4" component="h1" gutterBottom align="center" color="success.main">
               Request Submitted Successfully!
             </Typography>
@@ -175,28 +175,28 @@ function RegistrationRequest() {
   }
 
   return (
-    <Container maxWidth="md" className="py-8">
+    <Container maxWidth="md" sx={{ py: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3 } }}>
       <Card>
-        <CardContent className="p-8">
-          <Typography variant="h4" component="h1" gutterBottom align="center">
+        <CardContent sx={{ p: { xs: 3, sm: 4, md: 6 } }}>
+          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
             Request Access to Shul Display
           </Typography>
-          <Typography variant="body1" color="text.secondary" align="center" className="mb-6">
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: { xs: 3, md: 4 }, px: { xs: 1, sm: 0 } }}>
             Fill out this form to request access. We'll review your application and send you an email with further instructions.
           </Typography>
-          <Typography variant="body2" color="text.secondary" align="center" className="mb-4">
+          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: { xs: 2, md: 3 } }}>
             * Required fields
           </Typography>
 
           {error && (
-            <Alert severity="error" className="mb-4">
+            <Alert severity="error" sx={{ mb: { xs: 2, md: 3 } }}>
               {error}
             </Alert>
           )}
 
           <form onSubmit={handleSubmit}>
             {/* Organization Information */}
-            <Typography variant="h6" gutterBottom className="mt-4 mb-3">
+            <Typography variant="h6" gutterBottom sx={{ mt: { xs: 2, md: 3 }, mb: { xs: 2, md: 3 }, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
               Organization Information
             </Typography>
 
@@ -208,7 +208,7 @@ function RegistrationRequest() {
               required
               fullWidth
               variant="outlined"
-              className="mb-4"
+              sx={{ mb: { xs: 2, md: 3 } }}
               placeholder="e.g., Congregation Beth Shalom"
             />
 
@@ -219,7 +219,7 @@ function RegistrationRequest() {
               onChange={handleChange}
               fullWidth
               variant="outlined"
-              className="mb-4"
+              sx={{ mb: { xs: 2, md: 3 } }}
               placeholder="Rabbi's full name"
             />
 
@@ -231,11 +231,11 @@ function RegistrationRequest() {
               required
               fullWidth
               variant="outlined"
-              className="mb-4"
+              sx={{ mb: { xs: 2, md: 3 } }}
               placeholder="123 Main Street, Apt 4B"
             />
 
-            <Box className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 2, md: 3 }, mb: { xs: 2, md: 3 } }}>
               <TextField
                 name="city"
                 label="City"
@@ -258,7 +258,7 @@ function RegistrationRequest() {
               />
             </Box>
 
-            <Box className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 2, md: 3 }, mb: { xs: 2, md: 3 } }}>
               <TextField
                 name="zip_code"
                 label="Zip/Postal Code"
@@ -309,14 +309,14 @@ function RegistrationRequest() {
               required
               fullWidth
               variant="outlined"
-              className="mb-6"
+              sx={{ mb: { xs: 3, md: 4 } }}
               placeholder="(555) 123-4567"
             />
 
-            <Divider className="my-6" />
+            <Divider sx={{ my: { xs: 3, md: 4 } }} />
 
             {/* Contact Person Information */}
-            <Typography variant="h6" gutterBottom className="mb-3">
+            <Typography variant="h6" gutterBottom sx={{ mb: { xs: 2, md: 3 }, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
               Contact Person
             </Typography>
 
@@ -328,7 +328,7 @@ function RegistrationRequest() {
               required
               fullWidth
               variant="outlined"
-              className="mb-4"
+              sx={{ mb: { xs: 2, md: 3 } }}
               placeholder="John Doe"
             />
 
@@ -341,19 +341,19 @@ function RegistrationRequest() {
               required
               fullWidth
               variant="outlined"
-              className="mb-6"
+              sx={{ mb: { xs: 3, md: 4 } }}
               helperText="This will be used for your account login"
               placeholder="your.email@example.com"
             />
 
-            <Divider className="my-6" />
+            <Divider sx={{ my: { xs: 3, md: 4 } }} />
 
             {/* Purpose */}
-            <Typography variant="h6" gutterBottom className="mb-3">
+            <Typography variant="h6" gutterBottom sx={{ mb: { xs: 2, md: 3 }, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
               Additional Information
             </Typography>
 
-            <FormControl fullWidth variant="outlined" required className="mb-4">
+            <FormControl fullWidth variant="outlined" required sx={{ mb: { xs: 2, md: 3 } }}>
               <InputLabel>How will you use Shul Display?</InputLabel>
               <Select
                 value={purposeType}
@@ -378,7 +378,7 @@ function RegistrationRequest() {
                 multiline
                 rows={3}
                 variant="outlined"
-                className="mb-6"
+                sx={{ mb: { xs: 3, md: 4 } }}
                 placeholder="Please describe how you plan to use this service..."
               />
             )}
@@ -390,17 +390,17 @@ function RegistrationRequest() {
               size="large"
               fullWidth
               disabled={loading}
-              className="mb-4"
+              sx={{ mb: { xs: 2, md: 3 } }}
             >
               {loading ? 'Submitting Request...' : 'Submit Registration Request'}
             </Button>
 
             {/* Login Link */}
-            <Typography align="center" className="mt-4">
+            <Typography align="center" sx={{ mt: { xs: 2, md: 3 } }}>
               Already have an account?{' '}
               <Link
                 to="/login"
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                style={{ color: '#2563eb', fontWeight: 500, textDecoration: 'none' }}
               >
                 Sign in here
               </Link>

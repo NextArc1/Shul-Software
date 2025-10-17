@@ -15,14 +15,14 @@ const styles = {
   header: {
     background: 'linear-gradient(to right, #ffffff 0%, #f8fafc 100%)',
     color: '#1e293b',
-    padding: '32px 40px',
+    padding: 'clamp(24px, 4vw, 32px) clamp(16px, 4vw, 40px)',
     boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
     marginBottom: '0',
     borderBottom: '1px solid #e2e8f0'
   },
   headerTitle: {
     margin: '0',
-    fontSize: '28px',
+    fontSize: 'clamp(1.5rem, 4vw, 1.75rem)',
     fontWeight: '600',
     letterSpacing: '-0.3px',
     color: '#0f172a'
@@ -30,45 +30,48 @@ const styles = {
   contentWrapper: {
     maxWidth: '1400px',
     margin: '0 auto',
-    padding: '40px 40px 40px'
+    padding: 'clamp(20px, 4vw, 40px)'
   },
   sectionHeader: {
     display: 'flex',
     alignItems: 'center',
     marginBottom: '20px',
-    marginTop: '40px'
+    marginTop: 'clamp(24px, 5vw, 40px)',
+    flexWrap: 'wrap',
+    gap: '12px'
   },
   sectionTitle: {
-    fontSize: '20px',
+    fontSize: 'clamp(1.1rem, 3.5vw, 1.25rem)',
     fontWeight: '600',
     color: '#2c3e50',
     margin: '0',
     display: 'flex',
     alignItems: 'center',
-    gap: '10px'
+    gap: '10px',
+    flexWrap: 'wrap'
   },
   sectionSubtitle: {
-    fontSize: '14px',
+    fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
     color: '#7f8c8d',
     marginLeft: '10px',
     fontWeight: '400'
   },
   displayBoxesGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '20px',
-    marginBottom: '30px'
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+    gap: 'clamp(12px, 3vw, 20px)',
+    marginBottom: 'clamp(20px, 4vw, 30px)'
   },
   sourceBoxesGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '20px',
-    marginBottom: '30px'
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
+    gap: 'clamp(12px, 3vw, 20px)',
+    marginBottom: 'clamp(20px, 4vw, 30px)'
   },
   box: {
     backgroundColor: 'white',
     borderRadius: '12px',
-    padding: '20px',
+    padding: 'clamp(12px, 3vw, 20px)',
     boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
     border: '1px solid #e1e8ed',
     minHeight: '200px',
@@ -103,13 +106,15 @@ const styles = {
     backgroundColor: '#fafbfc',
     border: '1px solid #e1e8ed',
     borderRadius: '8px',
-    padding: '12px',
+    padding: 'clamp(8px, 2vw, 12px)',
     marginBottom: '8px',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     transition: 'all 0.2s ease',
-    cursor: 'move'
+    cursor: 'move',
+    flexWrap: 'wrap',
+    gap: '8px'
   },
   itemHover: {
     backgroundColor: '#f0f4f8',
@@ -124,17 +129,17 @@ const styles = {
   itemName: {
     fontWeight: '600',
     color: '#2c3e50',
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 0.875rem)',
     marginBottom: '2px'
   },
   itemInternalName: {
-    fontSize: '11px',
+    fontSize: 'clamp(0.65rem, 2vw, 0.6875rem)',
     color: '#95a5a6',
     fontStyle: 'italic',
     marginTop: '2px'
   },
   itemDetail: {
-    fontSize: '12px',
+    fontSize: 'clamp(0.7rem, 2vw, 0.75rem)',
     color: '#7f8c8d',
     marginTop: '4px'
   },
@@ -157,8 +162,8 @@ const styles = {
     marginLeft: '8px'
   },
   button: {
-    padding: '6px 12px',
-    fontSize: '13px',
+    padding: 'clamp(4px, 1.5vw, 6px) clamp(8px, 2vw, 12px)',
+    fontSize: 'clamp(0.75rem, 2vw, 0.8125rem)',
     fontWeight: '500',
     border: 'none',
     borderRadius: '6px',
@@ -166,7 +171,8 @@ const styles = {
     transition: 'all 0.2s ease',
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '4px'
+    gap: '4px',
+    whiteSpace: 'nowrap'
   },
   editButton: {
     backgroundColor: '#3498db',
@@ -270,7 +276,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,
-    padding: '20px'
+    padding: 'clamp(8px, 2vw, 20px)'
   },
   modalContent: {
     backgroundColor: 'white',
@@ -284,7 +290,7 @@ const styles = {
     position: 'relative'
   },
   modalHeader: {
-    padding: '24px 30px',
+    padding: 'clamp(16px, 3vw, 24px) clamp(16px, 4vw, 30px)',
     borderBottom: '1px solid #e1e8ed',
     display: 'flex',
     justifyContent: 'space-between',
@@ -297,7 +303,7 @@ const styles = {
   },
   modalTitle: {
     margin: 0,
-    fontSize: '24px',
+    fontSize: 'clamp(1.25rem, 4vw, 1.5rem)',
     fontWeight: '600',
     color: '#2c3e50'
   },
@@ -321,7 +327,7 @@ const styles = {
     color: '#2c3e50'
   },
   modalBody: {
-    padding: '30px'
+    padding: 'clamp(16px, 4vw, 30px)'
   }
 };
 
@@ -374,9 +380,10 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   );
 };
 
-const Box = ({ id, name, items, setItems, onNameChange, group, canEditName, onRemoveItem, renderItemActions, styling, onStylingChange }) => {
+const Box = ({ id, name, items, setItems, onNameChange, group, canEditName, onRemoveItem, renderItemActions, styling, onStylingChange, isMobile, onMoveToBox, boxNames }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [stylingExpanded, setStylingExpanded] = useState(false);
+  const [openMoveMenuId, setOpenMoveMenuId] = useState(null);
 
   const fontOptions = ['Arial', 'Times New Roman', 'Georgia', 'Courier New', 'Verdana', 'Trebuchet MS', 'Impact', 'Palatino', 'Garamond', 'Helvetica'];
 
@@ -422,7 +429,7 @@ const Box = ({ id, name, items, setItems, onNameChange, group, canEditName, onRe
             onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
             onMouseLeave={(e) => e.target.style.backgroundColor = '#f9fafb'}
           >
-            <span>🎨 Customize Appearance</span>
+            <span>Customize Appearance</span>
             <span style={{ fontSize: '10px' }}>{stylingExpanded ? '▲' : '▼'}</span>
           </button>
 
@@ -573,22 +580,39 @@ const Box = ({ id, name, items, setItems, onNameChange, group, canEditName, onRe
             {canEditName ? 'Drag items here' : 'No items available'}
           </div>
         ) : (
-          items.map((item) => <Item key={item.id} item={item} onRemoveItem={onRemoveItem} boxId={id} renderItemActions={renderItemActions} />)
+          items.map((item) => <Item key={item.id} item={item} onRemoveItem={onRemoveItem} boxId={id} renderItemActions={renderItemActions} isMobile={isMobile} onMoveToBox={onMoveToBox} boxNames={boxNames} openMoveMenuId={openMoveMenuId} setOpenMoveMenuId={setOpenMoveMenuId} />)
         )}
       </ReactSortable>
     </div>
   );
 };
 
-const Item = ({ item, onRemoveItem, boxId, renderItemActions }) => {
+const Item = ({ item, onRemoveItem, boxId, renderItemActions, isMobile, onMoveToBox, boxNames, openMoveMenuId, setOpenMoveMenuId }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [buttonHovered, setButtonHovered] = useState(null);
+
+  // Check if this is a source box (where items should show Move To buttons)
+  const isSourceBox = ['zmanimAndLimudim', 'customTimes', 'limudimBox', 'jewishCalendar'].includes(boxId);
+
+  // Check if this item's menu is open
+  const isMenuOpen = openMoveMenuId === item.id;
+
+  // Toggle menu for this item
+  const toggleMenu = () => {
+    if (isMenuOpen) {
+      setOpenMoveMenuId(null); // Close if already open
+    } else {
+      setOpenMoveMenuId(item.id); // Open and close others
+    }
+  };
 
   return (
     <div
       style={{
         ...styles.item,
-        ...(isHovered ? styles.itemHover : {})
+        ...(isHovered ? styles.itemHover : {}),
+        position: 'relative',
+        zIndex: isMenuOpen ? 1000 : 'auto'
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -605,6 +629,71 @@ const Item = ({ item, onRemoveItem, boxId, renderItemActions }) => {
       </div>
       <div style={styles.buttonGroup}>
         {renderItemActions && renderItemActions(item, buttonHovered, setButtonHovered)}
+
+        {/* Show Move To button on mobile for source boxes */}
+        {isMobile && isSourceBox && onMoveToBox && (
+          <div style={{ position: 'relative', zIndex: isMenuOpen ? 1001 : 1 }}>
+            <button
+              type="button"
+              onClick={toggleMenu}
+              style={{
+                ...styles.button,
+                backgroundColor: '#8b5cf6',
+                color: 'white',
+                ...(buttonHovered === 'move' ? { backgroundColor: '#7c3aed' } : {})
+              }}
+              onMouseEnter={() => setButtonHovered('move')}
+              onMouseLeave={() => setButtonHovered(null)}
+            >
+              Move to ▼
+            </button>
+
+            {/* Dropdown menu */}
+            {isMenuOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: '4px',
+                backgroundColor: 'white',
+                border: '1px solid #e1e8ed',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                zIndex: 1002,
+                minWidth: '180px',
+                overflow: 'hidden'
+              }}>
+                {['box1', 'box2', 'box3', 'box4'].map((targetBoxId) => (
+                  <button
+                    key={targetBoxId}
+                    type="button"
+                    onClick={() => {
+                      onMoveToBox(item, targetBoxId);
+                      setOpenMoveMenuId(null);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      border: 'none',
+                      backgroundColor: 'white',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#2c3e50',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f7fa'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                  >
+                    → {boxNames[targetBoxId]}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {onRemoveItem && (
           <button
             type="button"
@@ -636,6 +725,7 @@ const ZmanimSettings = () => {
   const [customTextsData, setCustomTextsData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('time'); // 'time' or 'text'
+  const [isMobile, setIsMobile] = useState(false);
   const [boxes, setBoxes] = useState({
     box1: { internalName: 'box1', displayName: 'Shabbos Times', items: [] },
     box2: { internalName: 'box2', displayName: 'Weekday Times', items: [] },
@@ -646,6 +736,16 @@ const ZmanimSettings = () => {
     jewishCalendar: { internalName: 'jewishCalendar', displayName: 'Jewish Calendar', items: [] },
     customTimes: { internalName: 'customTimes', displayName: 'Custom', items: [] },
   });
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Box styling state
   const [boxStyling, setBoxStyling] = useState({
@@ -1056,6 +1156,40 @@ const ZmanimSettings = () => {
     }));
   };
 
+  // Handle moving item to a specific box (for mobile)
+  const handleMoveToBox = (item, targetBoxId) => {
+    setBoxes(prevBoxes => {
+      // Create a copy of the item
+      const itemCopy = { ...item };
+
+      // Check if item already exists in target box
+      const targetBox = prevBoxes[targetBoxId];
+      const itemExists = targetBox.items.some(existingItem => existingItem.id === item.id);
+
+      if (itemExists) {
+        // Don't add duplicate
+        return prevBoxes;
+      }
+
+      // Add item to target box
+      return {
+        ...prevBoxes,
+        [targetBoxId]: {
+          ...targetBox,
+          items: [...targetBox.items, itemCopy]
+        }
+      };
+    });
+  };
+
+  // Create box names map for display
+  const boxNames = {
+    box1: boxes.box1.displayName,
+    box2: boxes.box2.displayName,
+    box3: boxes.box3.displayName,
+    box4: boxes.box4.displayName
+  };
+
   const globalStyles = `
     .handle:active {
       cursor: grabbing !important;
@@ -1225,7 +1359,7 @@ const ZmanimSettings = () => {
         {/* Display Boxes Section */}
         <div style={styles.sectionHeader}>
           <h2 style={styles.sectionTitle}>
-            📺 Display Boxes
+             Display Boxes
             <span style={styles.sectionSubtitle}>Customize what appears on your shul display</span>
           </h2>
         </div>
@@ -1243,6 +1377,9 @@ const ZmanimSettings = () => {
               canEditName={true}
               styling={boxStyling}
               onStylingChange={saveBoxStyling}
+              isMobile={isMobile}
+              onMoveToBox={handleMoveToBox}
+              boxNames={boxNames}
             />
           ))}
         </div>
@@ -1250,12 +1387,12 @@ const ZmanimSettings = () => {
         <hr style={styles.divider} />
 
         {/* Available Fields Section */}
-        <div style={{ ...styles.sectionHeader, justifyContent: 'space-between' }}>
+        <div style={{ ...styles.sectionHeader, justifyContent: 'space-between', flexDirection: 'column', alignItems: 'flex-start', '@media (min-width: 768px)': { flexDirection: 'row', alignItems: 'center' } }}>
           <h2 style={styles.sectionTitle}>
-            📋 Available Fields
+             Available Fields
             <span style={styles.sectionSubtitle}>Drag items to the display boxes above</span>
           </h2>
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: 'clamp(8px, 2vw, 12px)', flexWrap: 'wrap', width: '100%', '@media (min-width: 768px)': { width: 'auto' } }}>
             <AddButton onClick={handleAddCustomTime} />
             <button
               onClick={handleAddCustomText}
@@ -1288,6 +1425,9 @@ const ZmanimSettings = () => {
             onNameChange={handleBoxNameChange}
             group={{ name: 'shared', pull: 'clone', put: false }}
             canEditName={false}
+            isMobile={isMobile}
+            onMoveToBox={handleMoveToBox}
+            boxNames={boxNames}
           />
           <Box
             id="customTimes"
@@ -1298,6 +1438,9 @@ const ZmanimSettings = () => {
             group={{ name: 'shared', pull: 'clone', put: false }}
             canEditName={false}
             renderItemActions={renderCustomTimeActions}
+            isMobile={isMobile}
+            onMoveToBox={handleMoveToBox}
+            boxNames={boxNames}
           />
           <Box
             id="limudimBox"
@@ -1307,6 +1450,9 @@ const ZmanimSettings = () => {
             onNameChange={handleBoxNameChange}
             group={{ name: 'shared', pull: 'clone', put: false }}
             canEditName={false}
+            isMobile={isMobile}
+            onMoveToBox={handleMoveToBox}
+            boxNames={boxNames}
           />
           <Box
             id="jewishCalendar"
@@ -1316,6 +1462,9 @@ const ZmanimSettings = () => {
             onNameChange={handleBoxNameChange}
             group={{ name: 'shared', pull: 'clone', put: false }}
             canEditName={false}
+            isMobile={isMobile}
+            onMoveToBox={handleMoveToBox}
+            boxNames={boxNames}
           />
         </div>
 
