@@ -101,14 +101,14 @@ function GlobalMemorialSettings() {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" className="py-8">
+      <Container maxWidth="lg" className="py-8" sx={{ backgroundColor: 'white', minHeight: '100vh', paddingTop: 4, paddingBottom: 4 }}>
         <Typography>Loading...</Typography>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg" className="py-8">
+    <Container maxWidth="lg" className="py-8" sx={{ backgroundColor: 'white', minHeight: '100vh', paddingTop: 4, paddingBottom: 4 }}>
       <Box className="mb-6">
         <Button
           startIcon={<ArrowBackIcon />}

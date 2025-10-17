@@ -250,14 +250,14 @@ function MasterAdminDashboard() {
 
   if (loading) {
     return (
-      <Container maxWidth="xl" className="py-8">
+      <Container maxWidth="xl" className="py-8" sx={{ backgroundColor: 'white', minHeight: '100vh', paddingTop: 4, paddingBottom: 4 }}>
         <Typography>Loading...</Typography>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="xl" className="py-8">
+    <Container maxWidth="xl" className="py-8" sx={{ backgroundColor: 'white', minHeight: '100vh', paddingTop: 4, paddingBottom: 4 }}>
       <Box className="mb-6">
         <Typography variant="h4" component="h1" gutterBottom>
           Master Admin Dashboard
