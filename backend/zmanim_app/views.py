@@ -261,7 +261,13 @@ def update_coordinates(request):
 
     # Trigger recalculation from today forward (coordinates changed)
     from .tasks import recalculate_shul_zmanim
-    recalculate_shul_zmanim.delay(shul.id, from_date=date.today())
+    import pytz
+    import datetime
+
+    # Get today's date in the shul's timezone
+    tz = pytz.timezone(shul.timezone)
+    today_in_shul_tz = datetime.datetime.now(tz).date()
+    recalculate_shul_zmanim.delay(shul.id, from_date=today_in_shul_tz)
 
     return Response(ShulSerializer(shul).data)
 
@@ -602,9 +608,11 @@ def refresh_zmanim(request):
         return Response({'error': 'No shul found'}, status=status.HTTP_404_NOT_FOUND)
 
     from .zmanim_calculator import ZmanimCalculator
+    import pytz
 
-    # Calculate 6 months of zmanim
-    today = date.today()
+    # Get today's date in the shul's timezone, not server timezone
+    tz = pytz.timezone(shul.timezone)
+    today = datetime.datetime.now(tz).date()
     end_date = today + timedelta(days=180)  # 6 months
 
     # Delete all past records (before today)
@@ -633,8 +641,11 @@ def extend_zmanim_forward(request):
         return Response({'error': 'No shul found'}, status=status.HTTP_404_NOT_FOUND)
 
     from .zmanim_calculator import ZmanimCalculator
+    import pytz
 
-    today = date.today()
+    # Get today's date in the shul's timezone, not server timezone
+    tz = pytz.timezone(shul.timezone)
+    today = datetime.datetime.now(tz).date()
     target_end_date = today + timedelta(days=180)  # 6 months from today
 
     # Find last date we have data for

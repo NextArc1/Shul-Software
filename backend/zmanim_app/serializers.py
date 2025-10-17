@@ -305,9 +305,13 @@ class RegistrationSerializer(serializers.Serializer):
         # Auto-calculate 6 months of zmanim for new shul
         if latitude and longitude and latitude != 0.0 and longitude != 0.0:
             from .zmanim_calculator import ZmanimCalculator
-            from datetime import date, timedelta
+            from datetime import timedelta
+            import pytz
+            import datetime
 
-            start_date = date.today()
+            # Get today's date in the shul's timezone, not server timezone
+            tz = pytz.timezone(timezone)
+            start_date = datetime.datetime.now(tz).date()
             end_date = start_date + timedelta(days=180)
             ZmanimCalculator.calculate_date_range(shul, start_date, end_date)
 
@@ -514,14 +518,18 @@ class CompleteRegistrationSerializer(serializers.Serializer):
         # Auto-calculate 6 months of zmanim for new shul if coordinates exist
         if latitude and longitude and latitude != 0.0 and longitude != 0.0:
             from .zmanim_calculator import ZmanimCalculator
-            from datetime import date, timedelta
+            from datetime import timedelta
             import logging
+            import pytz
+            import datetime
 
             logger = logging.getLogger(__name__)
             logger.info(f"Starting automatic 6-month zmanim calculation for new shul: {shul.name} (ID: {shul.id})")
             logger.info(f"Location: Lat {latitude}, Lon {longitude}, Timezone: {timezone}")
 
-            start_date = date.today()
+            # Get today's date in the shul's timezone, not server timezone
+            tz = pytz.timezone(timezone)
+            start_date = datetime.datetime.now(tz).date()
             end_date = start_date + timedelta(days=180)
 
             try:
