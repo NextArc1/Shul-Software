@@ -1196,10 +1196,14 @@ def submit_registration_request(request):
     if serializer.is_valid():
         registration = serializer.save()
 
-        # Send confirmation email asynchronously (non-blocking)
-        from .tasks import send_registration_confirmation_email
+        # Send confirmation email to applicant asynchronously (non-blocking)
+        from .tasks import send_registration_confirmation_email, send_admin_registration_notification
         send_registration_confirmation_email.delay(registration.id)
         logger.info(f"Registration confirmation email task queued for {registration.email}")
+
+        # Send notification email to admin asynchronously (non-blocking)
+        send_admin_registration_notification.delay(registration.id)
+        logger.info(f"Admin notification email task queued for registration from {registration.organization_name}")
 
         return Response({
             'message': 'Registration request submitted successfully! We will review it and send you an email shortly.',

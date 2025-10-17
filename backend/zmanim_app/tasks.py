@@ -199,6 +199,63 @@ Email: {registration.email}
 
 
 @shared_task
+def send_admin_registration_notification(registration_id):
+    """
+    Send notification email to admin when a new registration request is submitted.
+    Runs asynchronously to avoid blocking the HTTP response.
+    """
+    from .models import PendingRegistration
+
+    try:
+        registration = PendingRegistration.objects.get(id=registration_id)
+
+        subject = f'New Registration Request - {registration.organization_name}'
+        message = f"""A new registration request has been submitted and is pending review.
+
+Organization Details:
+-------------------
+Organization Name: {registration.organization_name}
+Contact Name: {registration.contact_name}
+Rabbi: {registration.rabbi or 'N/A'}
+Email: {registration.email}
+Phone: {registration.phone}
+
+Address:
+{registration.street_address}
+{registration.city}, {registration.state} {registration.zip_code}
+{registration.country}
+
+Purpose:
+{registration.purpose}
+
+Submitted At: {registration.submitted_at.strftime('%Y-%m-%d %H:%M:%S UTC')}
+
+---
+To review and approve/reject this request, log in to the Master Admin Dashboard:
+{settings.SITE_URL}/master-admin
+
+Request ID: {registration.id}
+"""
+
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            ['shulscheduleapp@gmail.com'],
+            fail_silently=False,
+        )
+        logger.info(f"Admin notification sent for registration {registration.organization_name}")
+        return f"Admin notification sent"
+
+    except PendingRegistration.DoesNotExist:
+        logger.error(f"Registration {registration_id} not found")
+        return f"Registration {registration_id} not found"
+    except Exception as e:
+        logger.error(f"Failed to send admin notification for registration {registration_id}: {e}")
+        return f"Failed: {str(e)}"
+
+
+@shared_task
 def send_approval_email(registration_id):
     """
     Send approval email with registration link.
