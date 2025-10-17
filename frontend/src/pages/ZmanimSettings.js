@@ -380,7 +380,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   );
 };
 
-const Box = ({ id, name, items, setItems, onNameChange, group, canEditName, onRemoveItem, renderItemActions, styling, onStylingChange, isMobile, onMoveToBox, boxNames }) => {
+const Box = ({ id, name, items, setItems, onNameChange, group, canEditName, onRemoveItem, renderItemActions, styling, onStylingChange, isMobile, onMoveToBox, boxNames, showToggle, onToggle }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [stylingExpanded, setStylingExpanded] = useState(false);
   const [openMoveMenuId, setOpenMoveMenuId] = useState(null);
@@ -556,16 +556,31 @@ const Box = ({ id, name, items, setItems, onNameChange, group, canEditName, onRe
       )}
 
       <div style={styles.boxHeader}>
-        {canEditName ? (
-          <input
-            value={name}
-            onChange={(e) => onNameChange(id, e.target.value)}
-            style={styles.boxTitleInput}
-            placeholder="Box Name..."
-          />
-        ) : (
-          <h3 style={styles.boxTitle}>{name}</h3>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          {canEditName ? (
+            <input
+              value={name}
+              onChange={(e) => onNameChange(id, e.target.value)}
+              style={{ ...styles.boxTitleInput, flex: 1 }}
+              placeholder="Box Name..."
+            />
+          ) : (
+            <h3 style={styles.boxTitle}>{name}</h3>
+          )}
+
+          {/* Show/Hide toggle for Box 5 */}
+          {showToggle !== undefined && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#374151', flexShrink: 0 }}>
+              <input
+                type="checkbox"
+                checked={showToggle}
+                onChange={onToggle}
+                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+              />
+              <span>Show on Display</span>
+            </label>
+          )}
+        </div>
       </div>
       <ReactSortable
         list={items}
@@ -663,7 +678,7 @@ const Item = ({ item, onRemoveItem, boxId, renderItemActions, isMobile, onMoveTo
                 minWidth: '180px',
                 overflow: 'hidden'
               }}>
-                {['box1', 'box2', 'box3', 'box4'].map((targetBoxId) => (
+                {['box1', 'box2', 'box3', 'box4', 'box5'].map((targetBoxId) => (
                   <button
                     key={targetBoxId}
                     type="button"
@@ -731,6 +746,7 @@ const ZmanimSettings = () => {
     box2: { internalName: 'box2', displayName: 'Weekday Times', items: [] },
     box3: { internalName: 'box3', displayName: 'Box 3', items: [] },
     box4: { internalName: 'box4', displayName: 'Box 4', items: [] },
+    box5: { internalName: 'box5', displayName: 'Announcements', items: [] },
     zmanimAndLimudim: { internalName: 'zmanimAndLimudim', displayName: 'Basic Zmanim', items: [] },
     limudimBox: { internalName: 'limudimBox', displayName: 'Limudim', items: [] },
     jewishCalendar: { internalName: 'jewishCalendar', displayName: 'Jewish Calendar', items: [] },
@@ -765,7 +781,13 @@ const ZmanimSettings = () => {
     box4_text_font: 'Arial',
     box4_text_color: '#ffc764',
     box4_text_size: 18,
+    box5_text_font: 'Arial',
+    box5_text_color: '#ffc764',
+    box5_text_size: 24,
   });
+
+  // Show/hide Box 5 state
+  const [showBox5, setShowBox5] = useState(false);
 
   // Load layout and styling from database on mount
   useEffect(() => {
@@ -787,7 +809,17 @@ const ZmanimSettings = () => {
       const response = await api.get('/shul/display-layout/');
       // Backend returns {id, shul, layout_config, created_at, updated_at}
       if (response.layout_config && Object.keys(response.layout_config).length > 0) {
-        setBoxes(response.layout_config);
+        // Only load the display boxes (box1-4) from saved layout
+        // Don't overwrite source boxes (zmanimAndLimudim, limudimBox, jewishCalendar, customTimes)
+        // as they will be populated by fetchZmanim() and fetchCustomTimes/Texts()
+        setBoxes(prevBoxes => ({
+          ...prevBoxes,
+          box1: response.layout_config.box1 || prevBoxes.box1,
+          box2: response.layout_config.box2 || prevBoxes.box2,
+          box3: response.layout_config.box3 || prevBoxes.box3,
+          box4: response.layout_config.box4 || prevBoxes.box4,
+          box5: response.layout_config.box5 || prevBoxes.box5,
+        }));
       }
     } catch (error) {
       console.error('Error loading layout:', error);
@@ -816,9 +848,17 @@ const ZmanimSettings = () => {
       if (response.box4_text_font) styling.box4_text_font = response.box4_text_font;
       if (response.box4_text_color) styling.box4_text_color = response.box4_text_color;
       if (response.box4_text_size) styling.box4_text_size = response.box4_text_size;
+      if (response.box5_text_font) styling.box5_text_font = response.box5_text_font;
+      if (response.box5_text_color) styling.box5_text_color = response.box5_text_color;
+      if (response.box5_text_size) styling.box5_text_size = response.box5_text_size;
 
       if (Object.keys(styling).length > 0) {
         setBoxStyling(prev => ({ ...prev, ...styling }));
+      }
+
+      // Load show_box5 setting
+      if (response.show_box5 !== undefined) {
+        setShowBox5(response.show_box5);
       }
     } catch (error) {
       console.error('Error loading box styling:', error);
@@ -832,6 +872,19 @@ const ZmanimSettings = () => {
       setBoxStyling(prev => ({ ...prev, [field]: value }));
     } catch (error) {
       console.error('Error saving box styling:', error);
+    }
+  };
+
+  // Toggle show/hide Box 5
+  const toggleShowBox5 = async () => {
+    const newValue = !showBox5;
+    setShowBox5(newValue);
+    try {
+      await api.patch('/shul/', { show_box5: newValue });
+    } catch (error) {
+      console.error('Error saving show_box5:', error);
+      // Revert on error
+      setShowBox5(!newValue);
     }
   };
 
@@ -932,7 +985,7 @@ const ZmanimSettings = () => {
 
     // Check which boxes are using this custom time
     const usedInBoxes = [];
-    ['box1', 'box2', 'box3', 'box4'].forEach((boxKey) => {
+    ['box1', 'box2', 'box3', 'box4', 'box5'].forEach((boxKey) => {
       const box = boxes[boxKey];
       if (box.items.some(item => item.id === internalName)) {
         usedInBoxes.push(box.displayName);
@@ -958,7 +1011,7 @@ const ZmanimSettings = () => {
       if (usedInBoxes.length > 0) {
         setBoxes(prevBoxes => {
           const updatedBoxes = { ...prevBoxes };
-          ['box1', 'box2', 'box3', 'box4'].forEach((boxKey) => {
+          ['box1', 'box2', 'box3', 'box4', 'box5'].forEach((boxKey) => {
             updatedBoxes[boxKey] = {
               ...updatedBoxes[boxKey],
               items: updatedBoxes[boxKey].items.filter(item => item.id !== internalName)
@@ -979,7 +1032,7 @@ const ZmanimSettings = () => {
 
     // Check which boxes are using this custom text
     const usedInBoxes = [];
-    ['box1', 'box2', 'box3', 'box4'].forEach((boxKey) => {
+    ['box1', 'box2', 'box3', 'box4', 'box5'].forEach((boxKey) => {
       const box = boxes[boxKey];
       if (box.items.some(item => item.id === `customtext_${internalName}`)) {
         usedInBoxes.push(box.displayName);
@@ -1005,7 +1058,7 @@ const ZmanimSettings = () => {
       if (usedInBoxes.length > 0) {
         setBoxes(prevBoxes => {
           const updatedBoxes = { ...prevBoxes };
-          ['box1', 'box2', 'box3', 'box4'].forEach((boxKey) => {
+          ['box1', 'box2', 'box3', 'box4', 'box5'].forEach((boxKey) => {
             updatedBoxes[boxKey] = {
               ...updatedBoxes[boxKey],
               items: updatedBoxes[boxKey].items.filter(item => item.id !== `customtext_${internalName}`)
@@ -1187,7 +1240,8 @@ const ZmanimSettings = () => {
     box1: boxes.box1.displayName,
     box2: boxes.box2.displayName,
     box3: boxes.box3.displayName,
-    box4: boxes.box4.displayName
+    box4: boxes.box4.displayName,
+    box5: boxes.box5.displayName
   };
 
   const globalStyles = `
@@ -1369,7 +1423,7 @@ const ZmanimSettings = () => {
           </h2>
         </div>
         <div style={styles.displayBoxesGrid}>
-          {['box1', 'box2', 'box3', 'box4'].map((boxId) => (
+          {['box1', 'box2', 'box3', 'box4', 'box5'].map((boxId) => (
             <Box
               key={boxId}
               id={boxId}
@@ -1385,6 +1439,8 @@ const ZmanimSettings = () => {
               isMobile={isMobile}
               onMoveToBox={handleMoveToBox}
               boxNames={boxNames}
+              showToggle={boxId === 'box5' ? showBox5 : undefined}
+              onToggle={boxId === 'box5' ? toggleShowBox5 : undefined}
             />
           ))}
         </div>

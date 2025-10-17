@@ -1060,6 +1060,7 @@ def shul_display_data(request, shul_slug):
             'text_content': custom_text.text_content,
             'font_size': custom_text.font_size,
             'font_color': custom_text.font_color,
+            'text_align': custom_text.text_align,
             'line_thickness': custom_text.line_thickness
         })
 
@@ -1141,6 +1142,10 @@ def shul_display_data(request, shul_slug):
             'box4_text_font': shul.box4_text_font,
             'box4_text_color': shul.box4_text_color,
             'box4_text_size': shul.box4_text_size,
+            'box5_text_font': shul.box5_text_font,
+            'box5_text_color': shul.box5_text_color,
+            'box5_text_size': shul.box5_text_size,
+            'show_box5': shul.show_box5,
             # Outline and header colors
             'boxes_outline_color': shul.boxes_outline_color,
             'boxes_background_color': shul.boxes_background_color,

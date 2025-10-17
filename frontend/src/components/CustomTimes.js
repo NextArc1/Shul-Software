@@ -143,6 +143,56 @@ const CustomTimes = ({ onCustomTimeCreated, editingCustomTime, onCancelEdit }) =
 
   return (
     <div>
+      {/* Info section explaining Custom Times */}
+      <div style={{
+        padding: '20px',
+        backgroundColor: '#e8f4fd',
+        border: '2px solid #3498db',
+        borderRadius: '12px',
+        marginBottom: '25px',
+        maxWidth: '600px'
+      }}>
+        <h3 style={{ marginTop: 0, marginBottom: '12px', color: '#2c3e50', fontSize: '20px' }}>
+          ℹ️ How Custom Times Work
+        </h3>
+        <div style={{ fontSize: '14px', lineHeight: '1.6', color: '#34495e' }}>
+          <p style={{ marginTop: 0 }}>
+            <strong>Custom Times</strong> let you add your own minyanim or events to the display that aren't part of standard zmanim.
+          </p>
+          <ul style={{ marginTop: '8px', marginBottom: '8px', paddingLeft: '20px' }}>
+            <li style={{ marginBottom: '6px' }}>
+              <strong>Fixed Time:</strong> Set a specific time that never changes (e.g., "Mincha 2:00 PM" every day)
+            </li>
+            <li style={{ marginBottom: '6px' }}>
+              <strong>Dynamic Time:</strong> Calculate based on a zman with an offset (e.g., "Mincha: 20 minutes before sunset")
+            </li>
+          </ul>
+          <p style={{ marginBottom: '8px', marginTop: '12px' }}>
+            <strong>Calculation Modes:</strong>
+          </p>
+          <ul style={{ marginTop: '4px', marginBottom: 0, paddingLeft: '20px' }}>
+            <li style={{ marginBottom: '8px' }}>
+              <strong>Daily:</strong> The time automatically recalculates at midnight every night using that new day's zmanim. This is the standard mode for regular minyanim that follow the sun.
+              <div style={{ fontSize: '13px', color: '#555', marginTop: '2px', fontStyle: 'italic' }}>
+                Example: "Mincha 10 min before shkiah" will update at midnight to show the next day's sunset-based time. As the seasons change and sunset shifts earlier or later, your display automatically adjusts each day.
+              </div>
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              <strong>Weekly Target:</strong> Locks the displayed time to a specific weekday and shows that same time all week long, regardless of what day it currently is.
+              <div style={{ fontSize: '13px', color: '#555', marginTop: '2px', fontStyle: 'italic' }}>
+                Example: Set target to "Friday" so your "Early Mincha" shows Friday's time from Sunday through Thursday, making it easy for people to know the upcoming Shabbos time.
+              </div>
+            </li>
+            <li>
+              <strong>Specific Date:</strong> Locks the time to one calendar date permanently until you manually delete it. Perfect for holidays with special schedules.
+              <div style={{ fontSize: '13px', color: '#555', marginTop: '2px', fontStyle: 'italic' }}>
+                Example: Set to first day of Sukkos to display that day's davening schedule for as long as the component is displayed (even months later if you don't delete it).
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
       {/* Form for create/edit */}
       <form onSubmit={handleSubmit} style={{ maxWidth: '600px' }}>
         {/* General error display */}

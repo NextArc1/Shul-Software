@@ -77,7 +77,13 @@ class Shul(models.Model):
     box4_text_color = models.CharField(max_length=7, default='#ffc764', blank=True, help_text='Color for Box 4 text')
     box4_text_size = models.IntegerField(default=18, blank=True, help_text='Font size for Box 4 text in pixels')
 
-    # Uniform outline color for all boxes (4 main + 2 center)
+    # Box 5 (Announcement box - top center) styling
+    box5_text_font = models.CharField(max_length=100, default='Arial', blank=True, help_text='Font for Box 5 text')
+    box5_text_color = models.CharField(max_length=7, default='#ffc764', blank=True, help_text='Color for Box 5 text')
+    box5_text_size = models.IntegerField(default=24, blank=True, help_text='Font size for Box 5 text in pixels')
+    show_box5 = models.BooleanField(default=False, help_text='Show or hide Box 5 on the display')
+
+    # Uniform outline color for all boxes (4 main + 2 center + announcement)
     boxes_outline_color = models.CharField(max_length=7, default='#d4af37', blank=True, help_text='Outline color for all 6 boxes')
     # Uniform background color for all boxes (transparent by default)
     boxes_background_color = models.CharField(max_length=7, default='', blank=True, help_text='Background color for all 6 boxes (leave empty for transparent)')
@@ -503,6 +509,12 @@ class CustomText(models.Model):
         ('line_space', 'Line Space'),
     ]
 
+    TEXT_ALIGN_CHOICES = [
+        ('left', 'Left'),
+        ('center', 'Center'),
+        ('right', 'Right'),
+    ]
+
     shul = models.ForeignKey('Shul', on_delete=models.CASCADE, related_name='custom_texts', null=True, blank=True)
     internal_name = models.CharField(max_length=100, help_text='Unique identifier (lowercase, no spaces)')
     display_name = models.CharField(max_length=100, help_text='Label that appears on display')
@@ -510,6 +522,7 @@ class CustomText(models.Model):
     text_content = models.TextField(blank=True, help_text='The text content to display (not needed for dividers)')
     font_size = models.IntegerField(null=True, blank=True, help_text='Font size in pixels (leave empty to inherit from box)')
     font_color = models.CharField(max_length=7, blank=True, help_text='Hex color code (e.g., #ffffff)')
+    text_align = models.CharField(max_length=10, choices=TEXT_ALIGN_CHOICES, default='left', help_text='Text alignment (left, center, right)')
     line_thickness = models.IntegerField(null=True, blank=True, help_text='Line space thickness in pixels (1-200, default 40)')
     description = models.TextField(blank=True, help_text='Optional notes/description')
     created_at = models.DateTimeField(auto_now_add=True)

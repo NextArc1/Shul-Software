@@ -361,7 +361,7 @@ export default function ShulDisplay() {
       if (ct.text_type === 'line_space') {
         return { isLineSpace: true, lineThickness: ct.line_thickness || 40 };
       }
-      return { isCustomText: true, label: ct.display_name, text: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color };
+      return { isCustomText: true, label: ct.display_name, text: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color, textAlign: ct.text_align };
     }
     const formatted = formatValue(value, true, item.name);
     return formatted ? { time: formatted, label: getDisplayName(item) } : null;
@@ -378,7 +378,7 @@ export default function ShulDisplay() {
       if (ct.text_type === 'line_space') {
         return { isLineSpace: true, lineThickness: ct.line_thickness || 40 };
       }
-      return { isCustomText: true, label: ct.display_name, text: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color };
+      return { isCustomText: true, label: ct.display_name, text: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color, textAlign: ct.text_align };
     }
     const formatted = formatValue(value, true, item.name);
     return formatted ? { time: formatted, label: getDisplayName(item) } : null;
@@ -395,7 +395,7 @@ export default function ShulDisplay() {
       if (ct.text_type === 'line_space') {
         return { isLineSpace: true, lineThickness: ct.line_thickness || 40 };
       }
-      return { isCustomText: true, label: ct.display_name, value: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color };
+      return { isCustomText: true, label: ct.display_name, value: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color, textAlign: ct.text_align };
     }
     const formatted = formatValue(value, false);
     return formatted ? { label: getDisplayName(item), value: formatted } : null;
@@ -412,7 +412,24 @@ export default function ShulDisplay() {
       if (ct.text_type === 'line_space') {
         return { isLineSpace: true, lineThickness: ct.line_thickness || 40 };
       }
-      return { isCustomText: true, label: ct.display_name, value: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color };
+      return { isCustomText: true, label: ct.display_name, value: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color, textAlign: ct.text_align };
+    }
+    const formatted = formatValue(value, false);
+    return formatted ? { label: getDisplayName(item), value: formatted } : null;
+  }).filter(Boolean) || [];
+
+  const box5Items = layout?.box5?.items?.map(item => {
+    const value = getItemValue(item);
+    // Check if it's a custom text
+    if (value && value._customText) {
+      const ct = value._customText;
+      if (ct.text_type === 'divider') {
+        return { isDivider: true, dividerColor: ct.font_color };
+      }
+      if (ct.text_type === 'line_space') {
+        return { isLineSpace: true, lineThickness: ct.line_thickness || 40 };
+      }
+      return { isCustomText: true, label: ct.display_name, value: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color, textAlign: ct.text_align };
     }
     const formatted = formatValue(value, false);
     return formatted ? { label: getDisplayName(item), value: formatted } : null;
@@ -468,6 +485,11 @@ export default function ShulDisplay() {
     color: shul.box4_text_color || '#ffc764',
     fontSize: `${shul.box4_text_size || 18}px`
   };
+  const box5TextStyle = {
+    fontFamily: shul.box5_text_font || 'Arial',
+    color: shul.box5_text_color || '#ffc764',
+    fontSize: `${shul.box5_text_size || 24}px`
+  };
 
   // Get memorial boxes from shul database (editable by master admin only)
   const ilui = Array.isArray(shul.ilui_nishmat) && shul.ilui_nishmat.length > 0
@@ -500,7 +522,7 @@ export default function ShulDisplay() {
       {/* Main layout */}
       <div className="mx-auto max-w-[1800px] w-full px-4 lg:px-8 pt-4 lg:pt-6 pb-20 lg:pb-6 flex-1 overflow-y-auto lg:overflow-hidden flex items-start lg:items-center">
 
-        <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(300px,27%)_minmax(0,54%)_minmax(300px,27%)] gap-4 lg:gap-8">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(300px,30%)_minmax(0,40%)_minmax(300px,30%)] gap-4 lg:gap-8">
 
           {/* LEFT COLUMN */}
           <div className="">
@@ -520,7 +542,7 @@ export default function ShulDisplay() {
                   }
                   if (r.isCustomText) {
                     return (
-                      <div key={i} className="text-center break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box1TextStyle.fontSize, color: r.fontColor || box1TextStyle.color, fontFamily: box1TextStyle.fontFamily }}>
+                      <div key={i} className="break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box1TextStyle.fontSize, color: r.fontColor || box1TextStyle.color, fontFamily: box1TextStyle.fontFamily, textAlign: r.textAlign || 'left' }}>
                         {r.text}
                       </div>
                     );
@@ -558,7 +580,7 @@ export default function ShulDisplay() {
                   }
                   if (r.isCustomText) {
                     return (
-                      <div key={i} className="text-center break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box3TextStyle.fontSize, color: r.fontColor || box3TextStyle.color, fontFamily: box3TextStyle.fontFamily }}>
+                      <div key={i} className="break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box3TextStyle.fontSize, color: r.fontColor || box3TextStyle.color, fontFamily: box3TextStyle.fontFamily, textAlign: r.textAlign || 'left' }}>
                         {r.value}
                       </div>
                     );
@@ -583,10 +605,48 @@ export default function ShulDisplay() {
             </div>
           </div>
 
-          {/* CENTER COLUMN: logo/text at top; bottom two small boxes side-by-side */}
+          {/* CENTER COLUMN: wide top box, logo/text, bottom two small boxes side-by-side */}
           <div className="flex flex-col">
+            {/* Wide top box (Box 5) - only show if enabled */}
+            {shul.show_box5 && (
+              <div className="rounded-xl border-[3px] p-4 mb-6 h-[160px] flex flex-col overflow-hidden" style={{ borderColor: outlineColor, backgroundColor: boxesBackgroundColor || 'transparent' }}>
+                <AutoScrollContainer className="space-y-2 flex-1">
+                  {box5Items.length ? box5Items.map((r, i) => {
+                    if (r.isDivider) {
+                      return <hr key={i} className="border-t-2 my-2" style={{ borderColor: r.dividerColor || 'rgba(251, 191, 36, 0.3)' }} />;
+                    }
+                    if (r.isLineSpace) {
+                      return <div key={i} style={{ height: `${r.lineThickness}px` }} />;
+                    }
+                    if (r.isCustomText) {
+                      return (
+                        <div key={i} className="break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box5TextStyle.fontSize, color: r.fontColor || box5TextStyle.color, fontFamily: box5TextStyle.fontFamily, textAlign: r.textAlign || 'center' }}>
+                          {r.value}
+                        </div>
+                      );
+                    }
+                    return (
+                      <FitText key={i} className="grid grid-cols-2" style={box5TextStyle} maxFontSize={shul.box5_text_size || 24}>
+                        {isHebrewLanguage ? (
+                          <>
+                            <div className="text-left pl-2 tabular-nums whitespace-nowrap">{r.value}</div>
+                            <div className="text-right pr-2 whitespace-nowrap" dir="rtl">{r.label}</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-left pl-2 whitespace-nowrap">{r.label}</div>
+                            <div className="text-right pr-2 tabular-nums whitespace-nowrap">{r.value}</div>
+                          </>
+                        )}
+                      </FitText>
+                    );
+                  }) : <div className="text-center" style={box5TextStyle}>Announcements</div>}
+                </AutoScrollContainer>
+              </div>
+            )}
+
             {/* Center Logo or Text Display */}
-            <div className="flex-1 flex flex-col items-center px-8">
+            <div className={`flex flex-col items-center px-8 ${shul.show_box5 ? '' : 'flex-1'}`} style={shul.show_box5 ? { height: '380px' } : {}}>
               <div style={{ flex: shul.center_vertical_position || 50 }} />
               <div className="flex items-center justify-center">
                 {shul.center_logo ? (
@@ -612,7 +672,7 @@ export default function ShulDisplay() {
               </div>
               <div style={{ flex: 100 - (shul.center_vertical_position || 50) }} />
             </div>
-            <div className="grid grid-cols-2 gap-6 mt-4">
+            <div className={`grid grid-cols-2 gap-6 ${shul.show_box5 ? 'mt-6' : 'mt-4'}`}>
               <div>
                 <div className="text-center mb-2 text-[20px]" dir="rtl" style={box1TitleStyle}>לעילוי נשמת</div>
                 <div className={`rounded-xl border-[3px] p-6 ${SMALL_BOX_H} flex flex-col`} style={{ borderColor: outlineColor, backgroundColor: boxesBackgroundColor || 'transparent' }}>
@@ -655,7 +715,7 @@ export default function ShulDisplay() {
                   }
                   if (r.isCustomText) {
                     return (
-                      <div key={i} className="text-center break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box2TextStyle.fontSize, color: r.fontColor || box2TextStyle.color, fontFamily: box2TextStyle.fontFamily }}>
+                      <div key={i} className="break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box2TextStyle.fontSize, color: r.fontColor || box2TextStyle.color, fontFamily: box2TextStyle.fontFamily, textAlign: r.textAlign || 'left' }}>
                         {r.text}
                       </div>
                     );
@@ -693,7 +753,7 @@ export default function ShulDisplay() {
                   }
                   if (r.isCustomText) {
                     return (
-                      <div key={i} className="text-center break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box4TextStyle.fontSize, color: r.fontColor || box4TextStyle.color, fontFamily: box4TextStyle.fontFamily }}>
+                      <div key={i} className="break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box4TextStyle.fontSize, color: r.fontColor || box4TextStyle.color, fontFamily: box4TextStyle.fontFamily, textAlign: r.textAlign || 'left' }}>
                         {r.value}
                       </div>
                     );

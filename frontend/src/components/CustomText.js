@@ -8,6 +8,7 @@ const CustomText = ({ onCustomTextCreated, editingCustomText, onCancelEdit }) =>
   const [textContent, setTextContent] = useState('');
   const [fontSize, setFontSize] = useState('');
   const [fontColor, setFontColor] = useState('#ffc764');
+  const [textAlign, setTextAlign] = useState('left');
   const [lineThickness, setLineThickness] = useState('40');
   const [errors, setErrors] = useState({});
 
@@ -19,6 +20,7 @@ const CustomText = ({ onCustomTextCreated, editingCustomText, onCancelEdit }) =>
     setTextContent('');
     setFontSize('');
     setFontColor('#ffc764');
+    setTextAlign('left');
     setLineThickness('40');
     setErrors({});
   };
@@ -32,6 +34,7 @@ const CustomText = ({ onCustomTextCreated, editingCustomText, onCancelEdit }) =>
       setTextContent(editingCustomText.text_content || '');
       setFontSize(editingCustomText.font_size || '');
       setFontColor(editingCustomText.font_color || '#ffc764');
+      setTextAlign(editingCustomText.text_align || 'left');
       setLineThickness(editingCustomText.line_thickness || '40');
     } else {
       clearForm();
@@ -50,6 +53,7 @@ const CustomText = ({ onCustomTextCreated, editingCustomText, onCancelEdit }) =>
       text_content: textType === 'text' ? textContent : '',
       font_size: fontSize ? parseInt(fontSize) : null,
       font_color: fontColor || '',
+      text_align: textAlign || 'left',
       line_thickness: textType === 'line_space' ? parseInt(lineThickness) : null,
     };
 
@@ -85,6 +89,40 @@ const CustomText = ({ onCustomTextCreated, editingCustomText, onCancelEdit }) =>
 
   return (
     <div>
+      {/* Info section explaining Custom Text Components */}
+      <div style={{
+        padding: '20px',
+        backgroundColor: '#e8f5e9',
+        border: '2px solid #27ae60',
+        borderRadius: '12px',
+        marginBottom: '25px',
+        maxWidth: '600px'
+      }}>
+        <h3 style={{ marginTop: 0, marginBottom: '12px', color: '#2c3e50', fontSize: '20px' }}>
+          ℹ️ How Custom Components Work
+        </h3>
+        <div style={{ fontSize: '14px', lineHeight: '1.6', color: '#34495e' }}>
+          <p style={{ marginTop: 0 }}>
+            <strong>Custom Components</strong> let you add flexible content to your display beyond times and zmanim.
+          </p>
+          <ul style={{ marginTop: '8px', marginBottom: 0, paddingLeft: '20px' }}>
+            <li style={{ marginBottom: '6px' }}>
+              <strong>📝 Text:</strong> Display custom messages (e.g., "Rabbi's Office Hours", announcements, shiurim)
+              <ul style={{ marginTop: '4px', paddingLeft: '18px' }}>
+                <li style={{ fontSize: '13px', marginBottom: '3px' }}>Customize font size, color, and alignment</li>
+                <li style={{ fontSize: '13px' }}>Works great for notes, instructions, or special announcements</li>
+              </ul>
+            </li>
+            <li style={{ marginBottom: '6px' }}>
+              <strong>➖ Divider:</strong> Add a horizontal line to separate sections visually
+            </li>
+            <li>
+              <strong>⬜ Line Space:</strong> Insert empty space to control layout spacing (adjustable height)
+            </li>
+          </ul>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} style={{ maxWidth: '600px' }}>
         {/* General error display */}
         {Object.keys(errors).length > 0 && (
@@ -234,6 +272,58 @@ const CustomText = ({ onCustomTextCreated, editingCustomText, onCancelEdit }) =>
                 Hex color code. Leave empty to use default display color.
               </div>
               {errors.font_color && <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>{errors.font_color}</div>}
+            </div>
+
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Text Alignment:</label>
+              <div style={{ position: 'relative' }}>
+                <select
+                  value={textAlign}
+                  onChange={(e) => setTextAlign(e.target.value)}
+                  style={{
+                    padding: '10px 35px 10px 12px',
+                    width: '100%',
+                    fontSize: '15px',
+                    border: '2px solid #3b82f6',
+                    borderRadius: '8px',
+                    backgroundColor: '#ffffff',
+                    cursor: 'pointer',
+                    appearance: 'none',
+                    fontWeight: '500',
+                    color: '#2c3e50',
+                    backgroundImage: 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#2563eb';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                >
+                  <option value="left">◀ Left</option>
+                  <option value="center">▣ Center</option>
+                  <option value="right">▶ Right</option>
+                </select>
+                <div style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  fontSize: '18px',
+                  color: '#3b82f6',
+                  fontWeight: 'bold'
+                }}>
+                  ▼
+                </div>
+              </div>
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+                Choose how the text should be aligned horizontally
+              </div>
+              {errors.text_align && <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>{errors.text_align}</div>}
             </div>
           </>
         )}
