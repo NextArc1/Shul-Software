@@ -9,8 +9,15 @@ from .amud_yomi_bavli_dirshu import AmudYomiBavliDirshu
 
 
 def get_limud_description(calculator, date):
-    limud = calculator.limud(JewishDate(date))
-    return limud.description() if limud else ""
+    try:
+        limud = calculator.limud(JewishDate(date))
+        return limud.description() if limud else ""
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        calculator_name = calculator.__class__.__name__
+        logger.error(f"Error in {calculator_name} for {date}: {str(e)}")
+        return ""
 
 
 def get_daf_yomi_bavli(date):
