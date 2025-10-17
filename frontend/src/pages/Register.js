@@ -98,7 +98,7 @@ function Register() {
         
         // Redirect to admin portal after 2 seconds
         setTimeout(() => {
-          navigate('/admin/shul-settings');
+          navigate('/manage/shul-settings');
         }, 2000);
       } else {
         // Handle validation errors

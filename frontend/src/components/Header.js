@@ -108,7 +108,7 @@ const Header = () => {
               </Button>
               <Button
                 component={Link}
-                to="/admin/shul-settings"
+                to="/manage/shul-settings"
                 sx={{
                   color: '#4b5563',
                   px: 2,
@@ -127,7 +127,7 @@ const Header = () => {
               </Button>
               <Button
                 component={Link}
-                to="/admin/zmanim-settings"
+                to="/manage/zmanim-settings"
                 sx={{
                   color: '#4b5563',
                   px: 2,
@@ -146,7 +146,7 @@ const Header = () => {
               </Button>
               <Button
                 component={Link}
-                to="/admin/zmanim-debug"
+                to="/manage/zmanim-debug"
                 sx={{
                   color: '#4b5563',
                   px: 2,
@@ -165,7 +165,7 @@ const Header = () => {
               </Button>
               <Button
                 component={Link}
-                to="/admin/suggestions"
+                to="/manage/suggestions"
                 sx={{
                   color: '#4b5563',
                   px: 2,
@@ -184,7 +184,7 @@ const Header = () => {
               </Button>
               <Button
                 component={Link}
-                to="/admin/about"
+                to="/manage/about"
                 sx={{
                   color: '#4b5563',
                   px: 2,
@@ -203,7 +203,7 @@ const Header = () => {
               </Button>
               <Button
                 component={Link}
-                to="/admin/setup"
+                to="/manage/setup"
                 sx={{
                   color: '#4b5563',
                   px: 2,

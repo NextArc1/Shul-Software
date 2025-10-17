@@ -113,7 +113,7 @@ function CompleteRegistration() {
         localStorage.setItem('shulData', JSON.stringify(data.shul));
 
         // Redirect to admin portal
-        navigate('/admin/shul-settings');
+        navigate('/manage/shul-settings');
       } else {
         // Handle validation errors
         if (data.zip_code) {

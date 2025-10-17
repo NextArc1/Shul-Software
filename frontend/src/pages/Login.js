@@ -55,7 +55,7 @@ function Login() {
         }
         
         // Redirect to admin portal
-        navigate('/admin/shul-settings');
+        navigate('/manage/shul-settings');
       } else {
         setError(data.error || 'Login failed. Please check your credentials.');
       }

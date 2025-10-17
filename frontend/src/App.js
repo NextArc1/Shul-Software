@@ -58,13 +58,13 @@ function App() {
           {/* <Route path="/register-direct" element={<DisplayLayout><Register /></DisplayLayout>} /> */}
 
           {/* Admin portal routes (with header) */}
-          <Route path="/admin/shul-settings" element={<AdminLayout><ShulSettings /></AdminLayout>} />
-          <Route path="/admin/zmanim-settings" element={<AdminLayout><ZmanimSettings /></AdminLayout>} />
-          <Route path="/admin/zmanim-debug" element={<AdminLayout><ZmanimDebug /></AdminLayout>} />
-          <Route path="/admin/suggestions" element={<AdminLayout><Suggestions /></AdminLayout>} />
-          <Route path="/admin/about" element={<AdminLayout><About /></AdminLayout>} />
-          <Route path="/admin/setup" element={<AdminLayout><Setup /></AdminLayout>} />
-          <Route path="/admin" element={<AdminLayout><ShulSettings /></AdminLayout>} />
+          <Route path="/manage/shul-settings" element={<AdminLayout><ShulSettings /></AdminLayout>} />
+          <Route path="/manage/zmanim-settings" element={<AdminLayout><ZmanimSettings /></AdminLayout>} />
+          <Route path="/manage/zmanim-debug" element={<AdminLayout><ZmanimDebug /></AdminLayout>} />
+          <Route path="/manage/suggestions" element={<AdminLayout><Suggestions /></AdminLayout>} />
+          <Route path="/manage/about" element={<AdminLayout><About /></AdminLayout>} />
+          <Route path="/manage/setup" element={<AdminLayout><Setup /></AdminLayout>} />
+          <Route path="/manage" element={<AdminLayout><ShulSettings /></AdminLayout>} />
 
           {/* Master Admin routes (with header and protection) */}
           <Route path="/master-admin" element={<AdminLayout><MasterAdminRoute><MasterAdminDashboard /></MasterAdminRoute></AdminLayout>} />
