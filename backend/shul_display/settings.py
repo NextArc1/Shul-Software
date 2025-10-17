@@ -62,6 +62,15 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000').split(',')
 CORS_ALLOW_CREDENTIALS = True
 
+# Session Configuration
+# In production with HTTPS, cookies should be secure
+SESSION_COOKIE_SECURE = not DEBUG  # True in production (HTTPS only)
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = not DEBUG  # True in production (HTTPS only)
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+
 ROOT_URLCONF = 'shul_display.urls'
 
 TEMPLATES = [
