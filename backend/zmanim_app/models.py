@@ -500,15 +500,17 @@ class CustomText(models.Model):
     TEXT_TYPE_CHOICES = [
         ('text', 'Text'),
         ('divider', 'Divider'),
+        ('line_space', 'Line Space'),
     ]
 
     shul = models.ForeignKey('Shul', on_delete=models.CASCADE, related_name='custom_texts', null=True, blank=True)
     internal_name = models.CharField(max_length=100, help_text='Unique identifier (lowercase, no spaces)')
     display_name = models.CharField(max_length=100, help_text='Label that appears on display')
-    text_type = models.CharField(max_length=10, choices=TEXT_TYPE_CHOICES, default='text')
+    text_type = models.CharField(max_length=20, choices=TEXT_TYPE_CHOICES, default='text')
     text_content = models.TextField(blank=True, help_text='The text content to display (not needed for dividers)')
     font_size = models.IntegerField(null=True, blank=True, help_text='Font size in pixels (leave empty to inherit from box)')
     font_color = models.CharField(max_length=7, blank=True, help_text='Hex color code (e.g., #ffffff)')
+    line_thickness = models.IntegerField(null=True, blank=True, help_text='Line space thickness in pixels (1-200, default 40)')
     description = models.TextField(blank=True, help_text='Optional notes/description')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

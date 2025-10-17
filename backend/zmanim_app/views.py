@@ -1059,7 +1059,8 @@ def shul_display_data(request, shul_slug):
             'text_type': custom_text.text_type,
             'text_content': custom_text.text_content,
             'font_size': custom_text.font_size,
-            'font_color': custom_text.font_color
+            'font_color': custom_text.font_color,
+            'line_thickness': custom_text.line_thickness
         })
 
     # Create formatted Hebrew date

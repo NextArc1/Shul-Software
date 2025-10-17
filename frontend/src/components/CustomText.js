@@ -8,6 +8,7 @@ const CustomText = ({ onCustomTextCreated, editingCustomText, onCancelEdit }) =>
   const [textContent, setTextContent] = useState('');
   const [fontSize, setFontSize] = useState('');
   const [fontColor, setFontColor] = useState('#ffc764');
+  const [lineThickness, setLineThickness] = useState('40');
   const [errors, setErrors] = useState({});
 
   // Clear form function
@@ -18,6 +19,7 @@ const CustomText = ({ onCustomTextCreated, editingCustomText, onCancelEdit }) =>
     setTextContent('');
     setFontSize('');
     setFontColor('#ffc764');
+    setLineThickness('40');
     setErrors({});
   };
 
@@ -30,6 +32,7 @@ const CustomText = ({ onCustomTextCreated, editingCustomText, onCancelEdit }) =>
       setTextContent(editingCustomText.text_content || '');
       setFontSize(editingCustomText.font_size || '');
       setFontColor(editingCustomText.font_color || '#ffc764');
+      setLineThickness(editingCustomText.line_thickness || '40');
     } else {
       clearForm();
     }
@@ -47,6 +50,7 @@ const CustomText = ({ onCustomTextCreated, editingCustomText, onCancelEdit }) =>
       text_content: textType === 'text' ? textContent : '',
       font_size: fontSize ? parseInt(fontSize) : null,
       font_color: fontColor || '',
+      line_thickness: textType === 'line_space' ? parseInt(lineThickness) : null,
     };
 
     try {
@@ -134,6 +138,7 @@ const CustomText = ({ onCustomTextCreated, editingCustomText, onCancelEdit }) =>
             >
               <option value="text">📝 Text - Display custom content</option>
               <option value="divider">➖ Divider - Add a line separator</option>
+              <option value="line_space">⬜ Line Space - Add empty space</option>
             </select>
             <div style={{
               position: 'absolute',
@@ -255,6 +260,25 @@ const CustomText = ({ onCustomTextCreated, editingCustomText, onCancelEdit }) =>
               Color for the divider line. Leave empty to use default amber color.
             </div>
             {errors.font_color && <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>{errors.font_color}</div>}
+          </div>
+        )}
+
+        {textType === 'line_space' && (
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Line Thickness (height in pixels):</label>
+            <input
+              type="number"
+              value={lineThickness}
+              onChange={(e) => setLineThickness(e.target.value)}
+              min="1"
+              max="200"
+              style={{ width: '100%', padding: '8px', border: errors.line_thickness ? '2px solid red' : '1px solid #ccc' }}
+              placeholder="40"
+            />
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+              Height of the empty space in pixels (1-200). Default is 40px.
+            </div>
+            {errors.line_thickness && <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>{errors.line_thickness}</div>}
           </div>
         )}
 

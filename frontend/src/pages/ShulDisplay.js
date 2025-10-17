@@ -358,6 +358,9 @@ export default function ShulDisplay() {
       if (ct.text_type === 'divider') {
         return { isDivider: true, dividerColor: ct.font_color };
       }
+      if (ct.text_type === 'line_space') {
+        return { isLineSpace: true, lineThickness: ct.line_thickness || 40 };
+      }
       return { isCustomText: true, label: ct.display_name, text: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color };
     }
     const formatted = formatValue(value, true, item.name);
@@ -371,6 +374,9 @@ export default function ShulDisplay() {
       const ct = value._customText;
       if (ct.text_type === 'divider') {
         return { isDivider: true, dividerColor: ct.font_color };
+      }
+      if (ct.text_type === 'line_space') {
+        return { isLineSpace: true, lineThickness: ct.line_thickness || 40 };
       }
       return { isCustomText: true, label: ct.display_name, text: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color };
     }
@@ -386,6 +392,9 @@ export default function ShulDisplay() {
       if (ct.text_type === 'divider') {
         return { isDivider: true, dividerColor: ct.font_color };
       }
+      if (ct.text_type === 'line_space') {
+        return { isLineSpace: true, lineThickness: ct.line_thickness || 40 };
+      }
       return { isCustomText: true, label: ct.display_name, value: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color };
     }
     const formatted = formatValue(value, false);
@@ -399,6 +408,9 @@ export default function ShulDisplay() {
       const ct = value._customText;
       if (ct.text_type === 'divider') {
         return { isDivider: true, dividerColor: ct.font_color };
+      }
+      if (ct.text_type === 'line_space') {
+        return { isLineSpace: true, lineThickness: ct.line_thickness || 40 };
       }
       return { isCustomText: true, label: ct.display_name, value: ct.text_content, fontSize: ct.font_size, fontColor: ct.font_color };
     }
@@ -503,6 +515,9 @@ export default function ShulDisplay() {
                   if (r.isDivider) {
                     return <hr key={i} className="border-t-2 my-2" style={{ borderColor: r.dividerColor || 'rgba(251, 191, 36, 0.3)' }} />;
                   }
+                  if (r.isLineSpace) {
+                    return <div key={i} style={{ height: `${r.lineThickness}px` }} />;
+                  }
                   if (r.isCustomText) {
                     return (
                       <div key={i} className="text-center break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box1TextStyle.fontSize, color: r.fontColor || box1TextStyle.color, fontFamily: box1TextStyle.fontFamily }}>
@@ -537,6 +552,9 @@ export default function ShulDisplay() {
                 {dlRows.length ? dlRows.map((r, i) => {
                   if (r.isDivider) {
                     return <hr key={i} className="border-t-2 my-2" style={{ borderColor: r.dividerColor || 'rgba(251, 191, 36, 0.3)' }} />;
+                  }
+                  if (r.isLineSpace) {
+                    return <div key={i} style={{ height: `${r.lineThickness}px` }} />;
                   }
                   if (r.isCustomText) {
                     return (
@@ -632,6 +650,9 @@ export default function ShulDisplay() {
                   if (r.isDivider) {
                     return <hr key={i} className="border-t-2 my-2" style={{ borderColor: r.dividerColor || 'rgba(251, 191, 36, 0.3)' }} />;
                   }
+                  if (r.isLineSpace) {
+                    return <div key={i} style={{ height: `${r.lineThickness}px` }} />;
+                  }
                   if (r.isCustomText) {
                     return (
                       <div key={i} className="text-center break-words" style={{ fontSize: r.fontSize ? `${r.fontSize}px` : box2TextStyle.fontSize, color: r.fontColor || box2TextStyle.color, fontFamily: box2TextStyle.fontFamily }}>
@@ -666,6 +687,9 @@ export default function ShulDisplay() {
                 {box4Items.length ? box4Items.map((r, i) => {
                   if (r.isDivider) {
                     return <hr key={i} className="border-t-2 my-2" style={{ borderColor: r.dividerColor || 'rgba(251, 191, 36, 0.3)' }} />;
+                  }
+                  if (r.isLineSpace) {
+                    return <div key={i} style={{ height: `${r.lineThickness}px` }} />;
                   }
                   if (r.isCustomText) {
                     return (

@@ -1276,8 +1276,13 @@ const ZmanimSettings = () => {
 
           const customTextItems = customTexts.map(ct => {
             // Format display info based on type
-            let typeInfo = ct.text_type === 'divider' ? 'Divider' : 'Text';
-            let detailInfo = ct.text_type === 'text' ? `Content: ${ct.text_content.substring(0, 30)}${ct.text_content.length > 30 ? '...' : ''}` : '';
+            let typeInfo = ct.text_type === 'divider' ? 'Divider' : ct.text_type === 'line_space' ? 'Line Space' : 'Text';
+            let detailInfo = '';
+            if (ct.text_type === 'text') {
+              detailInfo = `Content: ${ct.text_content.substring(0, 30)}${ct.text_content.length > 30 ? '...' : ''}`;
+            } else if (ct.text_type === 'line_space') {
+              detailInfo = `Height: ${ct.line_thickness || 40}px`;
+            }
 
             return {
               id: `customtext_${ct.internal_name}`,
