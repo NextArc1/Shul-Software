@@ -21,11 +21,21 @@ import GlobalMemorialSettings from './pages/GlobalMemorialSettings';  // Import 
 import MasterAdminRoute from './components/MasterAdminRoute';  // Import Master Admin Route Protection
 import NotFound from './pages/NotFound';  // Import 404 Not Found page
 import LandingPage from './pages/LandingPage';  // Import Landing Page
+import woodBackground from './assets/wood-background.png';  // Import wood background
 
 // Layout component for admin pages (with header and footer)
 function AdminLayout({ children }) {
   return (
-    <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div className="App" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100vh',
+      backgroundImage: `url(${woodBackground})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+      backgroundRepeat: 'no-repeat'
+    }}>
       <Header />
       <div style={{ flex: 1 }}>{children}</div>
       <Footer />
@@ -36,7 +46,14 @@ function AdminLayout({ children }) {
 // Layout component for display pages (no header)
 function DisplayLayout({ children }) {
   return (
-    <div className="App">
+    <div className="App" style={{
+      backgroundImage: `url(${woodBackground})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+      backgroundRepeat: 'no-repeat',
+      minHeight: '100vh'
+    }}>
       {children}
     </div>
   );
