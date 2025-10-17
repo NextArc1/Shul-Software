@@ -18,8 +18,16 @@ function ZmanimDebug() {
     const sixMonthsLater = new Date();
     sixMonthsLater.setMonth(today.getMonth() + 6);
 
-    setStartDate(today.toISOString().split('T')[0]);
-    setEndDate(sixMonthsLater.toISOString().split('T')[0]);
+    // Format dates in local timezone (YYYY-MM-DD)
+    const formatLocalDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    setStartDate(formatLocalDate(today));
+    setEndDate(formatLocalDate(sixMonthsLater));
   }, []);
 
   const fetchZmanimRange = async () => {
