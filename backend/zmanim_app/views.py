@@ -76,39 +76,21 @@ def health_check(request):
 
 
 def fetch_timezone_by_coordinates(latitude, longitude):
-    """Fetch timezone by coordinates with retry logic and timeout"""
-    api_url = f"https://timeapi.io/api/TimeZone/coordinate?latitude={latitude}&longitude={longitude}"
+    """Fetch timezone by coordinates using offline timezonefinder library"""
+    try:
+        from timezonefinder import TimezoneFinder
+        tf = TimezoneFinder()
+        timezone_str = tf.timezone_at(lat=latitude, lng=longitude)
 
-    max_retries = 3
-    timeout = 10  # seconds
-
-    for attempt in range(max_retries):
-        try:
-            response = requests.get(api_url, timeout=timeout)
-            if response.status_code == 200:
-                data = response.json()
-                if 'timeZone' in data:
-                    return data['timeZone']
-            elif response.status_code >= 500:
-                # Server error, retry
-                logger.warning(f"Timezone API returned {response.status_code}, attempt {attempt + 1}/{max_retries}")
-                if attempt < max_retries - 1:
-                    continue
-            else:
-                # Client error, don't retry
-                logger.error(f"Timezone API returned {response.status_code}: {response.text}")
-                return None
-        except requests.exceptions.Timeout:
-            logger.warning(f"Timezone API timeout, attempt {attempt + 1}/{max_retries}")
-            if attempt < max_retries - 1:
-                continue
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Timezone API request failed: {e}, attempt {attempt + 1}/{max_retries}")
-            if attempt < max_retries - 1:
-                continue
-
-    logger.error(f"Failed to fetch timezone after {max_retries} attempts")
-    return None
+        if timezone_str:
+            logger.info(f"Found timezone {timezone_str} for coordinates ({latitude}, {longitude})")
+            return timezone_str
+        else:
+            logger.warning(f"Could not find timezone for coordinates ({latitude}, {longitude})")
+            return 'America/New_York'  # Default fallback
+    except Exception as e:
+        logger.error(f"Error finding timezone: {e}")
+        return 'America/New_York'  # Default fallback
 
 
 class RegisterView(APIView):
